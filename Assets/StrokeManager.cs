@@ -13,6 +13,11 @@ public class StrokeManager : MonoBehaviour
     public float StrokeAngle {get; protected set;}
     
     public float StrokeForce { get; protected set; }
+    public float StrokeForcePerc { get { return StrokeForce / MaxStrokeForce; } }
+    float MaxStrokeForce = 10f;
+    
+    float strokeForceFillSpeed = 5f;
+    int fillDir = 1;
     
     public enum StrokeModeEnum {
         AIMING,
@@ -24,8 +29,7 @@ public class StrokeManager : MonoBehaviour
     public StrokeModeEnum StrokeMode { get; protected set; }
 
     Rigidbody playerBallRB;
-
-    bool doWhack = false;
+                         
 
     private void FindPlayerBall() {
         GameObject go = GameObject.FindGameObjectWithTag("Player");
@@ -41,11 +45,37 @@ public class StrokeManager : MonoBehaviour
     }
 
     private void Update() {
-        if (Input.GetButton("Fire")) {
-            doWhack = true;
+        if (StrokeMode == StrokeModeEnum.AIMING)
+        {
+            StrokeAngle += Input.GetAxis("Horizontal") * 100f * Time.deltaTime;
+
+            if (Input.GetButtonUp("Fire"))
+            {
+                StrokeMode = StrokeModeEnum.FILLING;
+                return;
+            }
         }
 
-        StrokeAngle += Input.GetAxis("Horizontal") * 100f * Time.deltaTime;
+        if(StrokeMode == StrokeModeEnum.FILLING)
+        {
+            StrokeForce += (strokeForceFillSpeed * fillDir) * Time.deltaTime;
+            if(StrokeForce > MaxStrokeForce)
+            {
+                StrokeForce = MaxStrokeForce;
+                fillDir = -1;
+            }
+            else if (StrokeForce < 0)
+            {
+                StrokeForce = 0;
+                fillDir = 1;
+            }
+
+            if (Input.GetButtonUp("Fire"))
+            {
+                StrokeMode = StrokeModeEnum.DO_WHACK;
+            }
+
+        }
     }
 
     void CheckRollingStatus()
@@ -70,13 +100,17 @@ public class StrokeManager : MonoBehaviour
             return;
         }
 
+        if (StrokeMode != StrokeModeEnum.DO_WHACK)
+        {
+            return;
+        }
 
-        if (doWhack) {
-             doWhack = false;    
-             Vector3 forceVec = new Vector3(0, 0, -0.5f);
+        Vector3 forceVec = new Vector3(0, 0, -StrokeForce);
+        playerBallRB.AddForce(Quaternion.Euler(0, StrokeAngle, 0) * forceVec, ForceMode.Impulse);
 
-             playerBallRB.AddForce(Quaternion.Euler(0, StrokeAngle, 0) * forceVec, ForceMode.Impulse);
-             StrokeMode = StrokeModeEnum.BALL_IS_ROLLING; 
-        }     
+        StrokeForce = 0;
+        fillDir = 1;
+
+        StrokeMode = StrokeModeEnum.BALL_IS_ROLLING;   
     }
 }
