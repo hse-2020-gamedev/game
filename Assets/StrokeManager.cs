@@ -12,6 +12,17 @@ public class StrokeManager : MonoBehaviour
 
     public float StrokeAngle {get; protected set;}
     
+    public float StrokeForce { get; protected set; }
+    
+    public enum StrokeModeEnum {
+        AIMING,
+        FILLING,
+        DO_WHACK,
+        BALL_IS_ROLLING
+    };
+
+    public StrokeModeEnum StrokeMode { get; protected set; }
+
     Rigidbody playerBallRB;
 
     bool doWhack = false;
@@ -37,6 +48,15 @@ public class StrokeManager : MonoBehaviour
         StrokeAngle += Input.GetAxis("Horizontal") * 100f * Time.deltaTime;
     }
 
+    void CheckRollingStatus()
+    {
+        // Is the ball still rolling?
+        if(playerBallRB.IsSleeping())
+        {
+            StrokeMode = StrokeModeEnum.AIMING;
+        }
+    }
+
     // Update is called once per frame
     void FixedUpdate()
     {
@@ -44,11 +64,19 @@ public class StrokeManager : MonoBehaviour
             return;
         }
 
+        if(StrokeMode == StrokeModeEnum.BALL_IS_ROLLING)
+        {
+            CheckRollingStatus();
+            return;
+        }
+
+
         if (doWhack) {
              doWhack = false;    
              Vector3 forceVec = new Vector3(0, 0, -0.5f);
 
              playerBallRB.AddForce(Quaternion.Euler(0, StrokeAngle, 0) * forceVec, ForceMode.Impulse);
+             StrokeMode = StrokeModeEnum.BALL_IS_ROLLING; 
         }     
     }
 }
