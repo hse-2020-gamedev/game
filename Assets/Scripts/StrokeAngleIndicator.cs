@@ -8,17 +8,14 @@ public class StrokeAngleIndicator : MonoBehaviour
     void Start()
     {
         StrokeManager = GameObject.FindObjectOfType<StrokeManager>();
-
-        // FIXME!
-        playerBallTransform = GameObject.FindGameObjectWithTag("Player").transform;
     }
 
     StrokeManager StrokeManager;
-    Transform playerBallTransform;
-
+    
     // Update is called once per frame
     void Update()
     {
+        Transform playerBallTransform = StrokeManager.GetPlayerBall().transform;
         this.transform.position = playerBallTransform.position;
         this.transform.rotation = Quaternion.Euler(0, StrokeManager.StrokeAngle, 0);
     }

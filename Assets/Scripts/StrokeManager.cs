@@ -7,7 +7,7 @@ public class StrokeManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        FindPlayerBall();
+        FindPlayerBalls();
         StrokeCount = 0;
     }
 
@@ -17,6 +17,8 @@ public class StrokeManager : MonoBehaviour
     public float StrokeForcePerc { get { return StrokeForce / MaxStrokeForce; } }
 
     public int StrokeCount { get; protected set; }
+    int currentPlayerIndex = 0;
+    PlayerBall[] players;
 
     float strokeForceFillSpeed = 5f;
     int fillDir = 1;
@@ -32,23 +34,36 @@ public class StrokeManager : MonoBehaviour
 
     public StrokeModeEnum StrokeMode { get; protected set; }
 
+    public PlayerBall GetPlayerBall() {
+        return players[currentPlayerIndex]; 
+    }
+
     Rigidbody playerBallRB;
 
-    private void FindPlayerBall()
-    {
-        GameObject go = GameObject.FindGameObjectWithTag("Player"); // slow and dumb and could do badness
-
+    private void SetNextPlayer() {
+        ++currentPlayerIndex;
+        if (currentPlayerIndex == players.Length) {
+            currentPlayerIndex = 0;
+        }
+ 
+        PlayerBall go = GetPlayerBall();
+        
         if(go == null)
         {
             Debug.LogError("Couldn't find the ball.");
         }
 
         playerBallRB = go.GetComponent<Rigidbody>();
-
         if(playerBallRB == null)
         {
             Debug.LogError("Ball has no rigidbody?!?!?");
         }
+    }
+    
+    private void FindPlayerBalls() {
+        players = GameObject.FindObjectsOfType<PlayerBall>();
+        
+        SetNextPlayer();
     }
 
     // Update is called once per visual frame -- use this for inputs
@@ -93,6 +108,7 @@ public class StrokeManager : MonoBehaviour
         // Is the ball still rolling?
         if(playerBallRB.IsSleeping())
         {
+            SetNextPlayer();
             StrokeMode = StrokeModeEnum.AIMING;
         }
     }
