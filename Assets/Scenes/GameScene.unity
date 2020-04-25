@@ -260,7 +260,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!135 &77556900
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -622,7 +622,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!135 &307441527
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -925,6 +925,18 @@ PrefabInstance:
     - target: {fileID: 100000, guid: 0f2cbdf970c169646aaace9535e34887, type: 3}
       propertyPath: m_Name
       value: level0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 0f2cbdf970c169646aaace9535e34887, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 0f2cbdf970c169646aaace9535e34887, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 100004, guid: 0f2cbdf970c169646aaace9535e34887, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 0f2cbdf970c169646aaace9535e34887, type: 3}
       propertyPath: m_LocalPosition.x
