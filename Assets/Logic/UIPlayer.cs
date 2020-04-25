@@ -27,7 +27,7 @@ public class UIPlayer : MonoBehaviour, PlayerI
 
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space)) {
+        if (Input.GetKeyDown(KeyCode.Space)) {
             state = PlayerState.READY;
             result = Vector3.Normalize(gameState.GatePosition() - gameState.MyBall()) * slider.value;
             gameObject.SetActive(false);
