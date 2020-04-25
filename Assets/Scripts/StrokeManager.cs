@@ -57,7 +57,6 @@ public class StrokeManager : MonoBehaviour
         if (StrokeMode == StrokeModeEnum.AIMING)
         {
             StrokeAngle += Input.GetAxis("Horizontal") * 100f * Time.deltaTime;
-
             if (Input.GetButtonUp("Fire"))
             {
                 StrokeMode = StrokeModeEnum.FILLING;
