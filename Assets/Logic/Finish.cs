@@ -4,22 +4,10 @@ using UnityEngine;
 
 public class Finish : MonoBehaviour
 {
-    public GameObject loop;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public LoopScript Loop;
 
     private void OnTriggerEnter(Collider other)
     {
-        loop.GetComponent<Loop>().isGameOver = true;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Loop.isGameOver = true;
     }
 }

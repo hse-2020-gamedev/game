@@ -1140,7 +1140,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d65a5070f28af442ac201402e7ab968, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loop: {fileID: 1253078024}
+  Loop: {fileID: 1253078025}
 --- !u!1 &854840365
 GameObject:
   m_ObjectHideFlags: 0
@@ -1369,9 +1369,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dac042093d2db494dae856d79d5838c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerUI: {fileID: 1826014435}
+  Player: {fileID: 1826014437}
   gate: {fileID: 849155285}
-  winModal: {fileID: 2075909263}
+  showWinner: {fileID: 2075909268}
   isGameOver: 0
 --- !u!4 &1253078026
 Transform:
@@ -1756,7 +1756,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -400, y: 100}
-  m_SizeDelta: {x: 250, y: 40}
+  m_SizeDelta: {x: 250, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1486791442
 MonoBehaviour:
@@ -1791,7 +1791,9 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'click + drag mouse to move camera
 
-    select speed for your ball with a slider'
+    select speed for your ball with a slider
+
+    press Space to hit the ball'
 --- !u!222 &1486791443
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2090,8 +2092,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6695534a22201d54087c94b0be406f63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Name: 
-  m_EditorClassIdentifier: 
+  slider: {fileID: 2021107956}
+  DirectionSelector: {fileID: 1955029545}
 --- !u!1 &1955029542
 GameObject:
   m_ObjectHideFlags: 0
@@ -2150,7 +2152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb030817ffa459c4fa69898160813b86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dRot: 2
+  DeltaRot: 2
   Arrow: {fileID: 1668227008}
 --- !u!1 &2021107954
 GameObject:

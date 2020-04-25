@@ -19,7 +19,7 @@ class Ball : BallI
     }
 }
 
-public class Loop : MonoBehaviour
+public class LoopScript : MonoBehaviour
 {
     public PlayerI Player0;
     public BallI Ball0;
@@ -34,7 +34,7 @@ public class Loop : MonoBehaviour
 
     private float minSpeed = 0.04F;
 
-    public GameObject winModal;
+    public ShowWinner showWinner;
 
     public bool isGameOver = false;
 
@@ -127,9 +127,9 @@ public class Loop : MonoBehaviour
     {
         if (isGameOver)
         {
-            winModal.SetActive(true);
-            winModal.GetComponent<ShowWinner>().SetWinner(turn == 0 ? "player 1" : "player 2");
-            enabled = false;
+            gameObject.SetActive(false);
+            showWinner.gameObject.SetActive(true);
+            showWinner.SetWinner(turn == 0 ? "player 1" : "player 2");
         }
         else
         {
