@@ -1,14 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class UIPlayer : MonoBehaviour, PlayerI
+public class PlayerScript : MonoBehaviour, PlayerI
 {
     private StateI gameState;
     private PlayerState state = PlayerState.WAIT;
     Vector3 result;
-    private readonly GameObject go;
-    public UnityEngine.UI.Slider slider;
+
+    public Slider slider;
+    public DirectionSelectorScript DirectionSelector;
 
     public Vector3 GetResult()
     {
@@ -23,13 +25,14 @@ public class UIPlayer : MonoBehaviour, PlayerI
         this.gameState = gameState;
         state = PlayerState.ACTIVE;
         gameObject.SetActive(true);
+        DirectionSelector.enabled = true;
     }
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space)) {
             state = PlayerState.READY;
-            result = Vector3.Normalize(gameState.GatePosition() - gameState.MyBall()) * slider.value;
+            result = slider.value * DirectionSelector.GetDirection();
             gameObject.SetActive(false);
         }
     }

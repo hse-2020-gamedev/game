@@ -24,10 +24,10 @@ public class Loop : MonoBehaviour
     public PlayerI Player0;
     public BallI Ball0;
 
+    public PlayerScript Player;
     public PlayerI Player1;
     public BallI Ball1;
 
-    public GameObject playerUI;
     public GameObject gate;
     public SurfaceI surface;
     private int turn = 0;
@@ -42,10 +42,10 @@ public class Loop : MonoBehaviour
     void Start()
     {
         Player0 = new DummyPlayer();
-        Ball0 = new Ball(GameObject.Find("Ball1"));
+        Ball0 = new Ball(GameObject.Find("EnemyBall"));
 
-        Player1 = playerUI.GetComponent<UIPlayer>();
-        Ball1 = new Ball(GameObject.Find("Ball2"));
+        Player1 = Player;
+        Ball1 = new Ball(GameObject.Find("PlayerBall"));
 
     }
 
