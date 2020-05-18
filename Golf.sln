@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GolfClient", "GolfClient\Assembly-CSharp.csproj", "{18888B23-2322-443C-BB64-4F2C86FF356A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GolfServer", "GolfServer\Assembly-CSharp.csproj", "{5EF26B6B-3F8A-428C-BA0D-FB3452FBEBFC}"
+EndProject
+#Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GolfShared", "GolfShared\GolfShared.csproj", "{A610534D-4D96-47CA-ACDA-6F5C73222792}"
+#EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{18888B23-2322-443C-BB64-4F2C86FF356A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18888B23-2322-443C-BB64-4F2C86FF356A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18888B23-2322-443C-BB64-4F2C86FF356A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18888B23-2322-443C-BB64-4F2C86FF356A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A610534D-4D96-47CA-ACDA-6F5C73222792}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A610534D-4D96-47CA-ACDA-6F5C73222792}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A610534D-4D96-47CA-ACDA-6F5C73222792}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A610534D-4D96-47CA-ACDA-6F5C73222792}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EF26B6B-3F8A-428C-BA0D-FB3452FBEBFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EF26B6B-3F8A-428C-BA0D-FB3452FBEBFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EF26B6B-3F8A-428C-BA0D-FB3452FBEBFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EF26B6B-3F8A-428C-BA0D-FB3452FBEBFC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
