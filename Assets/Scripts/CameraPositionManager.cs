@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraPositionManager : MonoBehaviour
-{
+public class CameraPositionManager : MonoBehaviour {
+    StrokeManager StrokeManager;
+   
     void SetCameraOverview() {
         GameObject mainCam = GameObject.Find("Main Camera");
         GameObject levelPlane = GameObject.Find("level0").transform.Find("Plane").gameObject;
@@ -16,14 +17,23 @@ public class CameraPositionManager : MonoBehaviour
         mainCam.transform.rotation = Quaternion.Euler(90.0f, 0.0f, 0.0f);
     }
 
+    void SetThirdPersonCamera() {
+         GameObject mainCam = GameObject.Find("Main Camera");
+         var rot = mainCam.transform.eulerAngles.y;
+         mainCam.transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);  
+         Transform playerBallTransform = StrokeManager.GetPlayerBall().transform;
+         mainCam.transform.position = playerBallTransform.position + new Vector3(0.1f, 0.2f, -0.5f); 
+    }
+
     // Start is called before the first frame update
     void Start() {
-        SetCameraOverview();
+         StrokeManager = GameObject.FindObjectOfType<StrokeManager>();
+         SetCameraOverview();
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
+        SetThirdPersonCamera();
         
     }
 }
