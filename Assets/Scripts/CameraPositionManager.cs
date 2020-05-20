@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class CameraPositionManager : MonoBehaviour {
     StrokeManager StrokeManager;
-   
+    float lookSpeed = 2.0f;
+
     void SetCameraOverview() {
         GameObject mainCam = GameObject.Find("Main Camera");
         GameObject levelPlane = GameObject.Find("level0").transform.Find("Plane").gameObject;
@@ -20,9 +21,16 @@ public class CameraPositionManager : MonoBehaviour {
     void SetThirdPersonCamera() {
          GameObject mainCam = GameObject.Find("Main Camera");
          var rot = mainCam.transform.eulerAngles.y;
+         if (Input.GetMouseButton(0)) {
+             Debug.Log("Mose button down");
+             rot += Input.GetAxis("Mouse X") *  lookSpeed;
+         }
          mainCam.transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);  
          Transform playerBallTransform = StrokeManager.GetPlayerBall().transform;
-         mainCam.transform.position = playerBallTransform.position + new Vector3(0.1f, 0.2f, -0.5f); 
+         //Debug.Log(Mathf.Cos(rot));
+         //Debug.Log(rot);
+         mainCam.transform.position = playerBallTransform.position + new Vector3(-Mathf.Sin(rot*Mathf.PI/180)*0.5f, 0.2f, -Mathf.Cos(rot*Mathf.PI/180)*0.5f);
+         mainCam.transform.eulerAngles = new Vector2(0, rot); 
     }
 
     // Start is called before the first frame update
