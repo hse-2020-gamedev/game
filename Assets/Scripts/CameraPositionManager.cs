@@ -21,10 +21,11 @@ public class CameraPositionManager : MonoBehaviour {
     void SetThirdPersonCamera() {
          GameObject mainCam = GameObject.Find("Main Camera");
          var rot = mainCam.transform.eulerAngles.y;
-         if (Input.GetMouseButton(0)) {
-             Debug.Log("Mose button down");
-             rot += Input.GetAxis("Mouse X") *  lookSpeed;
-         }
+         rot = StrokeManager.StrokeAngle;
+         //if (Input.GetMouseButton(0)) {
+         //    Debug.Log("Mose button down");
+         //    rot += Input.GetAxis("Mouse X") *  lookSpeed;
+         //}
          mainCam.transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);  
          Transform playerBallTransform = StrokeManager.GetPlayerBall().transform;
          //Debug.Log(Mathf.Cos(rot));
