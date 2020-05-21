@@ -11,8 +11,8 @@ public class PlayerBall : MonoBehaviour
         Body.sleepThreshold = 2f; // Default is 0.005
     }
 
-    public Rigidbody Body;
-
+    public Rigidbody Body { get; private set; }
+    
     // Update is called once per frame
     void FixedUpdate()
     {

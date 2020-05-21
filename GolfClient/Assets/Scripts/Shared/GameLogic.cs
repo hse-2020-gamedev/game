@@ -121,7 +121,7 @@ public class GameLogic
             }
         }
 
-        SimulateFurther();
+        NextMove();
     }
 
     public void HitBall(int playerId, float angle, float forceFrac)
@@ -129,9 +129,8 @@ public class GameLogic
         if (playerId != CurrentPlayer) throw new ArgumentException($"Wrong player ID: {playerId}. Expected: {CurrentPlayer}");
         if (forceFrac < 0 || forceFrac > 1) throw new ArgumentException($"Invalid force fraction value: {forceFrac}");
 
-        var forceVec = new Vector3(0, 0, forceFrac * MaxStrokeForce);
-        
         var ballBody = PlayerBalls[playerId].Body;  
+        var forceVec = Vector3.forward * (MaxStrokeForce * forceFrac);
         ballBody.AddForce(Quaternion.Euler(0, angle, 0) * forceVec, ForceMode.Impulse);
         var trajectory = new Trajectory(FrameDeltaTime);
 
@@ -151,15 +150,15 @@ public class GameLogic
                 Debug.Log($"Ball1Position: {PlayerBalls[1].transform.position}, " +
                           $"Ball1Velocity: {PlayerBalls[1].Body.velocity}, " +
                           $"Ball1Sleeping: {PlayerBalls[1].Body.IsSleeping()}");
-                
+
                 throw new ApplicationException("Simulation is too long.");
             }
         }
         
         Events.Enqueue(new Event.PlayTrajectory(trajectory));
         
-        IncreaseCurrentPlayer();
-        SimulateFurther();
+        CurrentPlayer = (CurrentPlayer + 1) % NumberOfPlayers;
+        NextMove();
     }
 
     private bool AllBallsSleeping()
@@ -172,7 +171,7 @@ public class GameLogic
         return PlayerTypes[CurrentPlayer] != PlayerType.Human;
     }
 
-    private void SimulateFurther()
+    private void NextMove()
     {
         // TODO: check if finished
 
@@ -181,10 +180,5 @@ public class GameLogic
         {
             AIs[CurrentPlayer].MakeTurn();
         }
-    }
-
-    private void IncreaseCurrentPlayer()
-    {
-        CurrentPlayer = (CurrentPlayer + 1) % NumberOfPlayers;
     }
 }
