@@ -1,22 +1,30 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StrokeAngleIndicator : MonoBehaviour
+public class StrokeAngleIndicator
 {
-    // // Start is called before the first frame update
-    // void Start()
-    // {
-    //     StrokeManager = GameObject.FindObjectOfType<StrokeManager>();
-    // }
-    //
-    // StrokeManager StrokeManager;
-    //
-    // // Update is called once per frame
-    // void Update()
-    // {
-    //     Transform playerBallTransform = StrokeManager.GetPlayerBall().transform;
-    //     this.transform.position = playerBallTransform.position;
-    //     this.transform.rotation = Quaternion.Euler(0, StrokeManager.StrokeAngle, 0);
-    // }
+    private PlayerBall _playerBall;
+    private GameObject _object;
+    
+    public StrokeAngleIndicator(PlayerBall playerBall)
+    {
+        _playerBall = playerBall;
+        var prefab = (GameObject)Resources.Load("StrokeAngleIndicator", typeof(GameObject));
+        Debug.Assert(prefab != null);
+        _object = GameObject.Instantiate(prefab);
+    }
+
+    public void SetAngle(float strokeAngle)
+    {
+        Transform playerBallTransform = _playerBall.transform;
+        _object.transform.position = playerBallTransform.position;
+        _object.transform.rotation = Quaternion.Euler(0, strokeAngle, 0);
+    }
+
+    public void Destroy()
+    {
+        GameObject.Destroy(_object);
+    }
 }

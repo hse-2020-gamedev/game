@@ -69,3 +69,8 @@ crashlytics-build.properties
 
 # Jetbrains IDE files
 .idea
+
+# Executables
+*.exe
+*.x86_64
+*_Data

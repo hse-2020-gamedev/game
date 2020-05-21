@@ -14,6 +14,11 @@ public abstract class Event
 
     public class TurnOfPlayer : Event
     {
+        public TurnOfPlayer(int playerId)
+        {
+            this.playerId = playerId;
+        }
+
         public int playerId;
     }
 

@@ -7,12 +7,11 @@ public class PlayerBall : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.sleepThreshold = 0.5f; // Default is 0.005
-
+        Body = GetComponent<Rigidbody>(); 
+        Body.sleepThreshold = 2f; // Default is 0.005
     }
 
-    Rigidbody rb;
+    public Rigidbody Body;
 
     // Update is called once per frame
     void FixedUpdate()

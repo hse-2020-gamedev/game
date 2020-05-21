@@ -7,7 +7,7 @@ using UnityEngine;
 
 public interface IServer
 {
-    void HitBall(int playerId, Vector2 direction, float force);
+    void HitBall(int playerId, float direction, float force);
 
     void LeaveGame();
 

@@ -2,118 +2,82 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StrokeManager : MonoBehaviour
+public class StrokeManager
 {
-    // // Start is called before the first frame update
-    // void Start()
-    // {
-    //     FindPlayerBalls();
-    //     StrokeCount = 0;
-    // }
-    //
-    // public float StrokeAngle { get; protected set; }
-    //
-    // public float StrokeForce { get; protected set; }
-    // public float StrokeForcePerc { get { return StrokeForce / MaxStrokeForce; } }
-    //
-    // public int StrokeCount { get; protected set; }
-    // int currentPlayerIndex = 0;
-    // PlayerBall[] players;
-    //
-    // float strokeForceFillSpeed = 5f;
-    // int fillDir = 1;
-    //
-    // float MaxStrokeForce = 10f;
-    //
-    // public enum StrokeModeEnum {
-    //     AIMING,
-    //     FILLING,
-    //     DO_WHACK,
-    //     BALL_IS_ROLLING
-    // };
-    //
-    // public StrokeModeEnum StrokeMode { get; protected set; }
-    //
-    // public PlayerBall GetPlayerBall() {
-    //     return players[currentPlayerIndex]; 
-    // }
-    //
-    // Rigidbody playerBallRB;
-    //
-    // private void SetNextPlayer() {
-    //     ++currentPlayerIndex;
-    //     if (currentPlayerIndex == players.Length) {
-    //         currentPlayerIndex = 0;
-    //     }
-    //
-    //     PlayerBall go = GetPlayerBall();
-    //     
-    //     if(go == null)
-    //     {
-    //         Debug.LogError("Couldn't find the ball.");
-    //     }
-    //
-    //     playerBallRB = go.GetComponent<Rigidbody>();
-    //     if(playerBallRB == null)
-    //     {
-    //         Debug.LogError("Ball has no rigidbody?!?!?");
-    //     }
-    // }
-    //
-    // private void FindPlayerBalls() {
-    //     players = GameObject.FindObjectsOfType<PlayerBall>();
-    //     
-    //     SetNextPlayer();
-    // }
-    //
-    // // Update is called once per visual frame -- use this for inputs
-    // private void Update()
-    // {
-    //     if (StrokeMode == StrokeModeEnum.AIMING)
-    //     {
-    //         StrokeAngle += Input.GetAxis("Horizontal") * 100f * Time.deltaTime;
-    //         if (Input.GetButtonUp("Fire"))
-    //         {
-    //             StrokeMode = StrokeModeEnum.FILLING;
-    //             return;
-    //         }
-    //     }
-    //
-    //     if(StrokeMode == StrokeModeEnum.FILLING)
-    //     {
-    //         StrokeForce += (strokeForceFillSpeed * fillDir) * Time.deltaTime;
-    //         if(StrokeForce > MaxStrokeForce)
-    //         {
-    //             StrokeForce = MaxStrokeForce;
-    //             fillDir = -1;
-    //         }
-    //         else if (StrokeForce < 0)
-    //         {
-    //             StrokeForce = 0;
-    //             fillDir = 1;
-    //         }
-    //
-    //         if (Input.GetButtonUp("Fire"))
-    //         {
-    //             StrokeMode = StrokeModeEnum.DO_WHACK;
-    //         }
-    //
-    //     }
-    //
-    //
-    // }
-    //
-    // void CheckRollingStatus()
-    // {
-    //     // Is the ball still rolling?
-    //     if(playerBallRB.IsSleeping())
-    //     {
-    //         SetNextPlayer();
-    //         StrokeMode = StrokeModeEnum.AIMING;
-    //     }
-    // }
-    //
-    // // FixedUpdate runs on every tick of the physics engine, use this for manipulation
+    public StrokeManager(PlayerBall playerBall)
+    {
+        _strokeAngleIndicator = new StrokeAngleIndicator(playerBall);
+        // TODO: perhaps, it would be better to start looking in some sensible direction.
+        StrokeAngle = 0;
+        _strokeAngleIndicator.SetAngle(StrokeAngle);
+
+        // this._strokeForceUI = new StrokeForceUI();
+    }
+
+    public float StrokeAngle { get; private set; }
+    
+    public float StrokeForce { get; private set; }
+
+    private readonly StrokeAngleIndicator _strokeAngleIndicator;
+    // private StrokeForceUI _strokeForceUI;
+
+    // float strokeForceFillSpeed = 0.5f;
+    // int fillDirection = 1;
+
+    private enum StrokeStatusEnum {
+        Aiming,
+        // Filling,
+        // DoWhack,
+        Done
+    };
+
+    private StrokeStatusEnum _strokeStatus;
+
+    public bool Done => _strokeStatus == StrokeStatusEnum.Done;
+
+    // Update is called once per visual frame -- use this for inputs
+    public void Update()
+    {
+        if (_strokeStatus == StrokeStatusEnum.Aiming)
+        {
+            StrokeAngle += Input.GetAxis("Horizontal") * 100f * Time.deltaTime;
+            _strokeAngleIndicator.SetAngle(StrokeAngle);
+            if (Input.GetButtonUp("Fire"))
+            {
+                _strokeAngleIndicator.Destroy();
+                StrokeForce = 0.5f;
+                // StrokeStatus = StrokeStatusEnum.FILLING;
+                _strokeStatus = StrokeStatusEnum.Done;
+                return;
+            }
+        }
+        
+        
+    
+        // if(StrokeStatus == StrokeStatusEnum.FILLING)
+        // {
+        //     StrokeForce += (strokeForceFillSpeed * fillDir) * Time.deltaTime;
+        //     if(StrokeForce > MaxStrokeForce)
+        //     {
+        //         StrokeForce = MaxStrokeForce;
+        //         fillDir = -1;
+        //     }
+        //     else if (StrokeForce < 0)
+        //     {
+        //         StrokeForce = 0;
+        //         fillDir = 1;
+        //     }
+        //
+        //     if (Input.GetButtonUp("Fire"))
+        //     {
+        //         StrokeStatus = StrokeStatusEnum.DO_WHACK;
+        //     }
+        //
+        // }
+    
+    
+    }
+    
     // void FixedUpdate()
     // {
     //     if (playerBallRB == null)
@@ -123,13 +87,13 @@ public class StrokeManager : MonoBehaviour
     //         return;
     //     }
     //
-    //     if(StrokeMode == StrokeModeEnum.BALL_IS_ROLLING)
+    //     if(StrokeStatus == StrokeStatusEnum.BALL_IS_ROLLING)
     //     {
     //         CheckRollingStatus();
     //         return;
     //     }
     //
-    //     if (StrokeMode != StrokeModeEnum.DO_WHACK)
+    //     if (StrokeStatus != StrokeStatusEnum.DO_WHACK)
     //     {
     //         return;
     //     }
@@ -146,6 +110,6 @@ public class StrokeManager : MonoBehaviour
     //     fillDir = 1;
     //     StrokeCount++;
     //
-    //     StrokeMode = StrokeModeEnum.BALL_IS_ROLLING;
+    //     StrokeStatus = StrokeStatusEnum.BALL_IS_ROLLING;
     // }
 }

@@ -1,32 +1,42 @@
 
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class LocalServer : MonoBehaviour, IServer
+public class LocalServer : IServer
 {
-    private Scene _scene;
-
-    public void HitBall(int playerId, Vector2 direction, float force)
+    private GameLogic _gameLogic;
+    
+    public LocalServer(GameSettings gameSettings)
     {
-        
+        _gameLogic = new GameLogic(gameSettings);
+    }
+    
+    public void HitBall(int playerId, float angle, float force)
+    {
+        Debug.Log($"Hit ball with angle {angle} and force {force}");
+        _gameLogic.HitBall(playerId, angle, force);
     }
 
     public void LeaveGame()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
-
+    
     public Event NextEvent()
     {
-        var frames = new Frame[1000];
-        for (int i = 0; i < frames.Length; ++i)
+        // _gameLogic.Update();
+        // return null;
+        if (_gameLogic.Events.Count == 0)
         {
-            frames[i] = new Frame(new Vector3[2]);
-            frames[i].BallPositions[0] = new Vector3(0.001f * i, 0, 0);
-            frames[i].BallPositions[1] = new Vector3(-0.001f * i, 0, 0.2f);
+            return null;
         }
-        return new Event.PlayTrajectory(new Trajectory(frames, 1 / 60f));
+        else
+        {
+            return _gameLogic.Events.Dequeue();
+        }
     }
 
     // public static float MaxForce = 10;
