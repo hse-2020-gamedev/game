@@ -9,6 +9,7 @@ public class GameLoopManager : MonoBehaviour
 {
     private IServer _server;
     private Status _status;
+    private CameraPositionManager _cameraPositionManager;
     private PlayerBall[] _playerBalls;
     private int[] _localPlayerIds;
     
@@ -49,6 +50,7 @@ public class GameLoopManager : MonoBehaviour
     internal void Start()
     {
         _playerBalls = FindObjectsOfType<PlayerBall>();
+        _cameraPositionManager = new CameraPositionManager(_playerBalls[0]);
         var gameSettings = new GameSettings();
         gameSettings.SceneName = SceneManager.GetActiveScene().name;
         gameSettings.PlayerTypes = new[] {PlayerType.Human, PlayerType.DummyAI};
@@ -119,6 +121,7 @@ public class GameLoopManager : MonoBehaviour
         else if (_status is Status.LocalPlayerMoving moving)
         {
             moving.Manager.Update();
+            _cameraPositionManager.UpdateCameraPosition(moving.Manager.StrokeAngle);
             if (moving.Manager.Done)
             {
                 _server.HitBall(moving.PlayerId, moving.Manager.StrokeAngle, moving.Manager.StrokeForce);
