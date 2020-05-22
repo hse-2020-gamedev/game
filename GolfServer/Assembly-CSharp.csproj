@@ -53,19 +53,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\ClientAssets\Logic\CameraController.cs" />
-     <Compile Include="Assets\ClientAssets\Logic\DummyPlayer.cs" />
-     <Compile Include="Assets\ClientAssets\Logic\DummyState.cs" />
-     <Compile Include="Assets\ClientAssets\Logic\DummySurface.cs" />
-     <Compile Include="Assets\ClientAssets\Logic\Finish.cs" />
-     <Compile Include="Assets\ClientAssets\Logic\Interfaces.cs" />
-     <Compile Include="Assets\ClientAssets\Logic\PlayerScript.cs" />
-     <Compile Include="Assets\ClientAssets\Logic\ShowWinner.cs" />
-     <Compile Include="Assets\ClientAssets\Logic\utils\Bind.cs" />
-     <Compile Include="Assets\ClientAssets\Logic\utils\DirectionSelectorScript.cs" />
-     <Compile Include="Assets\ClientAssets\Scenes\LoopScript.cs" />
      <Compile Include="Assets\ClientAssets\Scenes\MenuBehaviourScript.cs" />
-     <Compile Include="Assets\ClientAssets\scri.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\ChangeBallLayer.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\GameLoopManager.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\IServerHandle.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\LocalServer.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\Shared\Event.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\Shared\GameLogic.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\Shared\IGameAI.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\Shared\PlayerBall.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\Shared\Trajectory.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\Ui\StrokeAngleIndicator.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\Ui\StrokeForceUI.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\Ui\StrokeManager.cs" />
+     <Compile Include="Assets\ClientAssets\Scripts\Utils\VectorExtensions.cs" />
      <Compile Include="Assets\Scripts\OldAssets\Logic\CameraController.cs" />
      <Compile Include="Assets\Scripts\OldAssets\Logic\DummyPlayer.cs" />
      <Compile Include="Assets\Scripts\OldAssets\Logic\DummyState.cs" />
@@ -83,6 +84,9 @@
      <Compile Include="Assets\Scripts\OldAssets\Scenes\MenuManager.cs" />
      <Compile Include="Assets\Scripts\OldAssets\scri.cs" />
      <Compile Include="Assets\Scripts\Server.cs" />
+     <None Include="Assets\ClientAssets\Materials\Ball.shader" />
+     <None Include="Assets\ClientAssets\Materials\Hole.shader" />
+     <None Include="Assets\ClientAssets\Materials\DepthMask.shader" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>/home/atonkikh/work/game/GolfServer/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
  </Reference>
