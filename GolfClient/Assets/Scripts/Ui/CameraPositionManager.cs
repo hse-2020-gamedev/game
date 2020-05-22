@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraPositionManager : MonoBehaviour {
+public class CameraPositionManager {
     private PlayerBall _playerBall;
    
     void SetCameraOverview() {

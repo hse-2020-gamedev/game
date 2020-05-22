@@ -5,18 +5,18 @@ using UnityEngine.UI;
 
 public class StrokeForceUI : MonoBehaviour
 {
-    // void Start()
-    // {
-    //     StrokeManager = GameObject.FindObjectOfType<StrokeManager>();
-    //     image = GetComponent<Image>();
-    // }
-    //
-    // StrokeManager StrokeManager;
-    // Image image;
-    //
-    // // Update is called once per frame
-    // void Update()
-    // {
-    //     image.fillAmount = StrokeManager.StrokeForcePerc;
-    // }
+    void Start()
+    {
+        _gameManager = GameObject.FindObjectOfType<GameLoopManager>();
+        image = GetComponent<Image>();
+    }
+
+    GameLoopManager _gameManager;
+    Image image;
+
+    // Update is called once per frame
+    void Update()
+    {
+        image.fillAmount = _gameManager.ForceImageFillAmount;
+    }
 }

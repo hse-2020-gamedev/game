@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameLoopManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class GameLoopManager : MonoBehaviour
     private CameraPositionManager _cameraPositionManager;
     private PlayerBall[] _playerBalls;
     private int[] _localPlayerIds;
+    public float ForceImageFillAmount;
     
     private abstract class Status
     {
@@ -38,7 +40,7 @@ public class GameLoopManager : MonoBehaviour
                 Manager = new StrokeManager(playerBall);
             }
 
-            public readonly StrokeManager Manager;
+            public readonly StrokeManager Manager;   
             public readonly int PlayerId;
         }
 
@@ -122,9 +124,10 @@ public class GameLoopManager : MonoBehaviour
         {
             moving.Manager.Update();
             _cameraPositionManager.UpdateCameraPosition(moving.Manager.StrokeAngle);
+            ForceImageFillAmount = moving.Manager.StrokeForcePerc;
             if (moving.Manager.Done)
             {
-                _server.HitBall(moving.PlayerId, moving.Manager.StrokeAngle, moving.Manager.StrokeForce);
+                _server.HitBall(moving.PlayerId, moving.Manager.StrokeAngle, moving.Manager.StrokeForcePerc);
                 _status = new Status.WaitingEvents();
             }
         }
