@@ -16,7 +16,7 @@ public class LocalServer : IServer
     
     public void HitBall(int playerId, float angle, float force)
     {
-        Debug.Log($"Hit ball with angle {angle} and force {force}");
+        Debug.Log($"Hit ball {playerId} with angle {angle} and force {force}");
         _gameLogic.HitBall(playerId, angle, force);
     }
 
