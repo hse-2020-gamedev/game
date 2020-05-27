@@ -6,18 +6,33 @@ ModelImporter:
     100000: //RootNode
     100002: Plane
     100004: Wall
+    100006: Asphalt
+    100008: Gress
+    100010: Send
     400000: //RootNode
     400002: Plane
     400004: Wall
+    400006: Asphalt
+    400008: Gress
+    400010: Send
     2100000: No Name
     2300000: //RootNode
     2300002: Plane
     2300004: Wall
+    2300006: Asphalt
+    2300008: Gress
+    2300010: Send
     3300000: //RootNode
     3300002: Plane
     3300004: Wall
+    3300006: Asphalt
+    3300008: Gress
+    3300010: Send
     4300000: Plane
     4300002: Wall
+    4300004: Asphalt
+    4300006: Gress
+    4300008: Send
     2186277476908879412: ImportLogs
   externalObjects: {}
   materials:
