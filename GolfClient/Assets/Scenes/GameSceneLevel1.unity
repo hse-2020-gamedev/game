@@ -1081,7 +1081,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 100000, guid: 6e341e06cbb488945ad5f5d177b55e25, type: 3}
       propertyPath: m_Name
-      value: level1_field
+      value: level0
       objectReference: {fileID: 0}
     - target: {fileID: 100004, guid: 6e341e06cbb488945ad5f5d177b55e25, type: 3}
       propertyPath: m_StaticEditorFlags

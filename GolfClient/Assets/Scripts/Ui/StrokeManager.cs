@@ -5,11 +5,10 @@ using UnityEngine.UI;
 
 public class StrokeManager
 {
-    public StrokeManager(PlayerBall playerBall)
+    public StrokeManager(PlayerBall playerBall, float strokeAngle = 0)
     {
         _strokeAngleIndicator = new StrokeAngleIndicator(playerBall);
-        // TODO: perhaps, it would be better to start looking in some sensible direction.
-        StrokeAngle = 0;
+        StrokeAngle = strokeAngle;
         _strokeAngleIndicator.SetAngle(StrokeAngle);
 
         // this._strokeForceUI = new StrokeForceUI();

@@ -14,6 +14,7 @@ public class GameLoopManager : MonoBehaviour
     private PlayerBall[] _playerBalls;
     private int[] _localPlayerIds;
     public float ForceImageFillAmount;
+    private float strokeAngle;
     
     private abstract class Status
     {
@@ -34,10 +35,10 @@ public class GameLoopManager : MonoBehaviour
 
         public class LocalPlayerMoving : Status
         {
-            public LocalPlayerMoving(int playerId, PlayerBall playerBall)
+            public LocalPlayerMoving(int playerId, PlayerBall playerBall, float strokeAngle)
             {
                 PlayerId = playerId;
-                Manager = new StrokeManager(playerBall);
+                Manager = new StrokeManager(playerBall, strokeAngle);
             }
 
             public readonly StrokeManager Manager;   
@@ -86,7 +87,7 @@ public class GameLoopManager : MonoBehaviour
                 int movingPlayerId = turnOfPlayerEvent.playerId;
                 if (_localPlayerIds.Contains(movingPlayerId))
                 {
-                    _status = new Status.LocalPlayerMoving(movingPlayerId, _playerBalls[movingPlayerId]);
+                    _status = new Status.LocalPlayerMoving(movingPlayerId, _playerBalls[movingPlayerId], strokeAngle);
                 }
                 else
                 {
@@ -124,6 +125,7 @@ public class GameLoopManager : MonoBehaviour
         {
             moving.Manager.Update();
             _cameraPositionManager.UpdateCameraPosition(moving.Manager.StrokeAngle);
+            strokeAngle = moving.Manager.StrokeAngle;
             ForceImageFillAmount = moving.Manager.StrokeForcePerc;
             if (moving.Manager.Done)
             {
