@@ -14,6 +14,7 @@ public class GameLoopManager : MonoBehaviour
     private PlayerBall[] _playerBalls;
     private int[] _localPlayerIds;
     private GameObject _scorePanel;
+    private GameObject _finalText;
     public float ForceImageFillAmount;
     private float strokeAngle;
     
@@ -48,6 +49,10 @@ public class GameLoopManager : MonoBehaviour
 
         public class Finished : Status 
         {
+            public Finished(string message) {
+                msg = message;
+            }
+            public readonly string msg;
 
         }
         // WaitingOtherPlayers
@@ -58,6 +63,7 @@ public class GameLoopManager : MonoBehaviour
     {
         _playerBalls = FindObjectsOfType<PlayerBall>();
         _scorePanel = GameObject.Find("/RootObject/Canvas/ScorePanel");
+        _finalText = GameObject.Find("/RootObject/Canvas/ScorePanel/Text");
         Debug.Log(_scorePanel);
         _cameraPositionManager = new CameraPositionManager(_playerBalls[0]);
         var gameSettings = new GameSettings();
@@ -101,9 +107,8 @@ public class GameLoopManager : MonoBehaviour
                     _status = new Status.WaitingEvents();
                 }
             } else if (ev is Event.Finish finishEvent) {
-                _status = new Status.Finished();
-            } else
-            {
+                _status = new Status.Finished(finishEvent.Message);
+            } else {
                 throw new NotImplementedException();
             }
         }
@@ -140,6 +145,7 @@ public class GameLoopManager : MonoBehaviour
                 _status = new Status.WaitingEvents();
             }
         } else if (_status is Status.Finished finished) {
+            _finalText.GetComponent<Text>().text = finished.msg;
             _scorePanel.SetActive(true);
             Time.timeScale = 0f;
         }

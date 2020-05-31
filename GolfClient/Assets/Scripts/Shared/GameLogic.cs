@@ -178,14 +178,18 @@ public class GameLogic
 
     private void NextMove()
     {
-        //if (PlayerBalls[0].getLayerId() != 0 || PlayerBalls[1].getLayerId() != 0) {
-            Events.Enqueue(new Event.Finish());
-        //}
+        if (PlayerBalls[0].getLayerId() != 0) {
+            Events.Enqueue(new Event.Finish("Player 0 win!"));
+        }
         
-        /*Events.Enqueue(new Event.TurnOfPlayer(CurrentPlayer));
+        if (PlayerBalls[1].getLayerId() != 0) {
+            Events.Enqueue(new Event.Finish("Player 1 win!"));
+        }
+        
+        Events.Enqueue(new Event.TurnOfPlayer(CurrentPlayer));
         if (PlayerTypes[CurrentPlayer] != PlayerType.Human)
         {
             AIs[CurrentPlayer].MakeTurn();
-        }*/
+        }
     }
 }
