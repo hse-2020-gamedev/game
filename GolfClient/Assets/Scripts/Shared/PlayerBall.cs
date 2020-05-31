@@ -8,7 +8,7 @@ public class PlayerBall : MonoBehaviour
     void Start()
     {
         Body = GetComponent<Rigidbody>(); 
-        Body.sleepThreshold = 2f; // Default is 0.005
+        Body.sleepThreshold = 0.2f; // Default is 0.005
     }
 
     public Rigidbody Body { get; private set; }

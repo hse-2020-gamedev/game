@@ -137,12 +137,17 @@ public class GameLogic
         var physicsScene = SimulationScene.GetPhysicsScene();
 
         int nSteps = 0;
-        while (!AllBallsSleeping())
-        {
+        int SleepFrame = 0;
+        while (SleepFrame < 50) {
+            if (AllBallsSleeping()) {
+                SleepFrame += 1;
+            } else {
+                SleepFrame = 0;
+            }
             physicsScene.Simulate(FrameDeltaTime);
             trajectory.AddFrame(Frame.Extract(PlayerBalls));
             nSteps++;
-            if (nSteps > 300)
+            if (nSteps > 3000)
             {
                 Debug.Log($"Ball0Position: {PlayerBalls[0].transform.position}, " +
                           $"Ball0Velocity: {PlayerBalls[0].Body.velocity}, " +
