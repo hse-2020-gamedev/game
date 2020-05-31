@@ -13,6 +13,9 @@ public class PlayerBall : MonoBehaviour
 
     public Rigidbody Body { get; private set; }
     
+    public int getLayerId() {
+        return 0;//layer;
+    }
     // Update is called once per frame
     void FixedUpdate()
     {

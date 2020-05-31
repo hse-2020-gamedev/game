@@ -178,12 +178,14 @@ public class GameLogic
 
     private void NextMove()
     {
-        // TODO: check if finished
-
-        Events.Enqueue(new Event.TurnOfPlayer(CurrentPlayer));
+        //if (PlayerBalls[0].getLayerId() != 0 || PlayerBalls[1].getLayerId() != 0) {
+            Events.Enqueue(new Event.Finish());
+        //}
+        
+        /*Events.Enqueue(new Event.TurnOfPlayer(CurrentPlayer));
         if (PlayerTypes[CurrentPlayer] != PlayerType.Human)
         {
             AIs[CurrentPlayer].MakeTurn();
-        }
+        }*/
     }
 }

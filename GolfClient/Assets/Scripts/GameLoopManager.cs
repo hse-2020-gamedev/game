@@ -13,6 +13,7 @@ public class GameLoopManager : MonoBehaviour
     private CameraPositionManager _cameraPositionManager;
     private PlayerBall[] _playerBalls;
     private int[] _localPlayerIds;
+    private GameObject _scorePanel;
     public float ForceImageFillAmount;
     private float strokeAngle;
     
@@ -45,7 +46,10 @@ public class GameLoopManager : MonoBehaviour
             public readonly int PlayerId;
         }
 
-        // Finished,
+        public class Finished : Status 
+        {
+
+        }
         // WaitingOtherPlayers
     }
     
@@ -53,6 +57,8 @@ public class GameLoopManager : MonoBehaviour
     internal void Start()
     {
         _playerBalls = FindObjectsOfType<PlayerBall>();
+        _scorePanel = GameObject.Find("/RootObject/Canvas/ScorePanel");
+        Debug.Log(_scorePanel);
         _cameraPositionManager = new CameraPositionManager(_playerBalls[0]);
         var gameSettings = new GameSettings();
         gameSettings.SceneName = SceneManager.GetActiveScene().name;
@@ -94,8 +100,9 @@ public class GameLoopManager : MonoBehaviour
                     // Waiting for remote player to make turn.
                     _status = new Status.WaitingEvents();
                 }
-            }
-            else
+            } else if (ev is Event.Finish finishEvent) {
+                _status = new Status.Finished();
+            } else
             {
                 throw new NotImplementedException();
             }
@@ -132,6 +139,9 @@ public class GameLoopManager : MonoBehaviour
                 _server.HitBall(moving.PlayerId, moving.Manager.StrokeAngle, moving.Manager.StrokeForcePerc);
                 _status = new Status.WaitingEvents();
             }
+        } else if (_status is Status.Finished finished) {
+            _scorePanel.SetActive(true);
+            Time.timeScale = 0f;
         }
     }
 }
