@@ -28,6 +28,7 @@ public class GameLogic
     public int NumberOfPlayers => PlayerTypes.Length;
 
     public readonly Scene SimulationScene;
+    public readonly GameSettings _gameSettings;
     public PlayerBall[] PlayerBalls { get; private set; }
     public GameObject TargetHole { get; private set; }
 
@@ -50,6 +51,8 @@ public class GameLogic
     
     public GameLogic(GameSettings gameSettings)
     {
+        _gameSettings = gameSettings;
+        
         // Initialize simulation scene:
         var sceneParameters = new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D); 
         var task = SceneManager.LoadSceneAsync(gameSettings.SceneName, sceneParameters);
