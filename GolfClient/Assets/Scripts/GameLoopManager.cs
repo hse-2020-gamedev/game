@@ -8,6 +8,9 @@ using UnityEngine.UI;
 
 public class GameLoopManager : MonoBehaviour
 {
+    
+    private Button _goToMenuButton;
+    private string _menuSceneName = "Menu";
     private IServer _server;
     private Status _status;
     private CameraPositionManager _cameraPositionManager;
@@ -64,6 +67,8 @@ public class GameLoopManager : MonoBehaviour
         _playerBalls = FindObjectsOfType<PlayerBall>();
         _scorePanel = GameObject.Find("/RootObject/Canvas/ScorePanel");
         _finalText = GameObject.Find("/RootObject/Canvas/ScorePanel/Text");
+        _goToMenuButton = GameObject.Find("/RootObject/Canvas/ScorePanel/OKButton").GetComponent<Button>();
+        _goToMenuButton.onClick.AddListener(OnGoToMenuButtonClick);
         Debug.Log(_scorePanel);
         _cameraPositionManager = new CameraPositionManager(_playerBalls[0]);
         var gameSettings = new GameSettings();
@@ -149,5 +154,10 @@ public class GameLoopManager : MonoBehaviour
             _scorePanel.SetActive(true);
             Time.timeScale = 0f;
         }
+    }
+
+    void OnGoToMenuButtonClick()
+    {
+        SceneManager.LoadScene(_menuSceneName);
     }
 }
