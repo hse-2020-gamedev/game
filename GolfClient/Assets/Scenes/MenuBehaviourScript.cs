@@ -8,15 +8,28 @@ public class MenuBehaviourScript : MonoBehaviour
 {
     public Button StartButon;
     public Button QuitButton;
-    public string GameSceneName;
+    public string GameSceneLevel0Name;
+    public string GameSceneLevel1Name;
+    public Button Level0Button;
+    public Button Level1Button;
     public GameObject MainPanel;
     public GameObject ChooseLevelPanel;
     // Start is called before the first frame update
     void Start()
     {
+        Level0Button.onClick.AddListener(OnLevel0ButtonClick);  
+        Level1Button.onClick.AddListener(OnLevel1ButtonClick);
         StartButon.onClick.AddListener(OnStartButtonClick);
     }
 
+    void OnLevel0ButtonClick() {
+        SceneManager.LoadScene(GameSceneLevel0Name);      
+    }
+
+    void OnLevel1ButtonClick() {
+        SceneManager.LoadScene(GameSceneLevel1Name);      
+    }
+    
     void OnStartButtonClick() {
         MainPanel.SetActive(false);
         ChooseLevelPanel.SetActive(true);

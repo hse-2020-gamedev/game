@@ -696,7 +696,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StartButon: {fileID: 2145334200}
   QuitButton: {fileID: 592457473}
-  GameSceneName: GameScene
+  GameSceneLevel0Name: GameScene
+  GameSceneLevel1Name: GameSceneLevel1
+  Level0Button: {fileID: 978792283}
+  Level1Button: {fileID: 1047540675}
   MainPanel: {fileID: 158861216}
   ChooseLevelPanel: {fileID: 1660230358}
 --- !u!4 &865276024
