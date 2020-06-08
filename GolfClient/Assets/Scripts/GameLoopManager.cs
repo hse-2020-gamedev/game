@@ -24,12 +24,14 @@ public class GameLoopManager : MonoBehaviour
         
         public class BallIsRolling : Status
         {
-            public BallIsRolling(Trajectory traj)
+            public BallIsRolling(Trajectory traj, int ballToFollow)
             {
                 Traj = traj;
+                FollowedBall = ballToFollow;
             }
 
             public readonly Trajectory Traj;
+            public readonly int FollowedBall;
             public int CurrentFrame;
         }
 
@@ -53,12 +55,16 @@ public class GameLoopManager : MonoBehaviour
     internal void Start()
     {
         _playerBalls = FindObjectsOfType<PlayerBall>();
-        _cameraPositionManager = new CameraPositionManager(_playerBalls[0]);
+        _cameraPositionManager = new CameraPositionManager(_playerBalls);
         var gameSettings = new GameSettings();
         gameSettings.SceneName = SceneManager.GetActiveScene().name;
-        gameSettings.PlayerTypes = new[] {PlayerType.Human, PlayerType.DummyAI};
+        gameSettings.PlayerTypes = new[] {PlayerType.DummyAI, PlayerType.EvilAI};
         _server = new LocalServer(gameSettings);
-        _localPlayerIds = new[] { 0 };
+        Debug.Log("Total players: " + _playerBalls.Length);
+        _localPlayerIds = Enumerable
+            .Range(0, _playerBalls.Length - 1)
+            .Where(id => gameSettings.PlayerTypes[id] == PlayerType.Human)
+            .ToArray();
         Physics.autoSimulation = false;
         _status = new Status.WaitingEvents();
         // TODO: make deterministic.
@@ -80,7 +86,7 @@ public class GameLoopManager : MonoBehaviour
             Debug.Log("Received event");
             if (ev is Event.PlayTrajectory playTrajectoryEvent)
             {
-                _status = new Status.BallIsRolling(playTrajectoryEvent.Trajectory);
+                _status = new Status.BallIsRolling(playTrajectoryEvent.Trajectory, playTrajectoryEvent.BallToFollow);
             }
             else if (ev is Event.TurnOfPlayer turnOfPlayerEvent)
             {
@@ -106,6 +112,7 @@ public class GameLoopManager : MonoBehaviour
             if (rolling.CurrentFrame >= trajectory.Frames.Count)
             {
                 _status = new Status.WaitingEvents();
+                _server.NextMove();
             }
             else
             {
@@ -118,13 +125,14 @@ public class GameLoopManager : MonoBehaviour
                     ballTransform.position = ballStatus.Position;
                     ballTransform.rotation = ballStatus.Rotation;
                 }
+                _cameraPositionManager.FollowBall(rolling.FollowedBall);
                 ++rolling.CurrentFrame;
             }
         }
         else if (_status is Status.LocalPlayerMoving moving)
         {
             moving.Manager.Update();
-            _cameraPositionManager.UpdateCameraPosition(moving.Manager.StrokeAngle);
+            _cameraPositionManager.ViewBall(moving.PlayerId, moving.Manager.StrokeAngle);
             strokeAngle = moving.Manager.StrokeAngle;
             ForceImageFillAmount = moving.Manager.StrokeForcePerc;
             if (moving.Manager.Done)

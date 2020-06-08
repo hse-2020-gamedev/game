@@ -24,19 +24,18 @@ public class LocalServer : IServer
     {
         throw new NotImplementedException();
     }
+
+    public void NextMove()
+    {
+        _gameLogic.NextMove();
+    }
     
     public Event NextEvent()
     {
         // _gameLogic.Update();
         // return null;
-        if (_gameLogic.Events.Count == 0)
-        {
-            return null;
-        }
-        else
-        {
-            return _gameLogic.Events.Dequeue();
-        }
+        _gameLogic.Events.TryDequeue(out var result);
+        return result;
     }
 
     // public static float MaxForce = 10;

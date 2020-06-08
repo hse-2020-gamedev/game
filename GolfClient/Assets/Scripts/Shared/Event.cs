@@ -4,11 +4,13 @@ public abstract class Event
 
     public class PlayTrajectory : Event
     {
-        public PlayTrajectory(Trajectory trajectory)
+        public PlayTrajectory(Trajectory trajectory, int ballToFollow)
         {
+            BallToFollow = ballToFollow;
             Trajectory = trajectory;
         }
 
+        public int BallToFollow;
         public Trajectory Trajectory;
     }
 
