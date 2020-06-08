@@ -64,12 +64,15 @@ public class DummyAI : IGameAI
         var targetPosition = _gameLogic.TargetHole.transform.position;
 
         float targetHoleDirection = ballPosition.xz().LookAt(targetPosition.xz());
-        float minAngle = targetHoleDirection - 1;
-        float maxAngle = targetHoleDirection + 1;
-        float angleStep = 0.5f;
-        float minForce = 0.3f;
-        float maxForce = 0.8f;
-        float forceStep = 0.1f;
+        Debug.Log("ANGLE = " + targetHoleDirection);
+
+        bool closeEnough = Vector3.Distance(ballPosition, targetPosition) < 4;
+        float minAngle = targetHoleDirection - 90;
+        float maxAngle = targetHoleDirection + 90;
+        float angleStep = closeEnough ? 10f : 30f;
+        float minForce = closeEnough ? 0.05f : 0.3f;
+        float maxForce = 0.9f;
+        float forceStep = closeEnough ? 0.05f : 0.1f;
         float bestAngle = minAngle;
         float bestForce = minForce;
         float bestDistance = EmulateHit(_playerId, minAngle, minForce);
@@ -82,6 +85,7 @@ public class DummyAI : IGameAI
                 float distance = EmulateHit(_playerId, angle, force);
                 if (distance < bestDistance && random.NextDouble() < 0.75)
                 {
+                    Debug.Log("UPDATE! " + bestDistance + " " + bestAngle + " " + bestForce);
                     bestDistance = distance;
                     bestAngle = angle;
                     bestForce = force;
