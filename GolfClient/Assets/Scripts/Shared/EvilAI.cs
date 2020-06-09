@@ -5,6 +5,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using Utils;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 public class EvilAI : IGameAI
 {
@@ -37,12 +38,12 @@ public class EvilAI : IGameAI
         }
     }
 
-    private const float MinAngle = -0.5f;
-    private const float MaxAngle = 0.5f;
+    private const float MinAngle = -0.2f;
+    private const float MaxAngle = 0.2f;
     private const float AngleStep = 0.1f;
-    private const float MinForce = 0.04f;
+    private const float MinForce = 0.0f;
     private const float MaxForce = 1f;
-    private const float ForceStep = 0.04f;
+    private const int SearchSteps = 15;
 
     private volatile bool _makeTurnAfterLoading = false;
 
@@ -56,6 +57,8 @@ public class EvilAI : IGameAI
         _gameLogic = gameLogic;
         _playerId = playerId;
 
+        _gameLogic.SceneLoadSubscribers.Enqueue(OnSceneLoaded);
+
         SceneManager.LoadSceneAsync(
             _gameLogic.GameSettings.SceneName, 
             new LoadSceneParameters(
@@ -63,8 +66,6 @@ public class EvilAI : IGameAI
                 LocalPhysicsMode.Physics3D
             )
         );
-
-        _gameLogic.SceneLoadSubscribers.Enqueue(OnSceneLoaded);
     }
 
     private void OnSceneLoaded(Scene scene)
@@ -128,13 +129,31 @@ public class EvilAI : IGameAI
 
             float targetHoleDirection = ballPosition.xz().LookAt(targetPosition.xz()) + (playerId == _playerId ? 0 : 1);
 
-            for (float angle = targetHoleDirection + MinAngle; angle <= targetHoleDirection + MaxAngle; angle += AngleStep)
-                for (float force = MinForce; force <= MaxForce; force += ForceStep)
+            for (float angle = targetHoleDirection + MinAngle;
+                angle <= targetHoleDirection + MaxAngle;
+                angle += AngleStep)
+            {
+                float forceL = MinForce;
+                float forceR = MaxForce;
+                for (int step = 0; step < SearchSteps; ++step)
                 {
-                    HitInfo newHit = new HitInfo(this, playerId, angle, force);
-                    if (newHit.CompareTo(bestHit) < 0 && Random.value < 0.5)
-                        bestHit = newHit;
+                    float forceML = (forceL * 2 + forceR) / 3;
+                    HitInfo hitML = new HitInfo(this, playerId, angle, forceML);
+
+                    float forceMR = (forceL + 2 * forceR) / 3;
+                    HitInfo hitMR = new HitInfo(this, playerId, angle, forceMR);
+
+                    int comparisonResult = forceML.CompareTo(forceMR);
+                    if (comparisonResult <= 0)
+                        forceL = forceML;
+                    if (comparisonResult >= 0)
+                        forceR = forceMR;
                 }
+
+                HitInfo newHit = new HitInfo(this, playerId, angle, (forceL + forceR) / 2);
+                if (newHit.CompareTo(bestHit) < 0 && Random.value < 0.8)
+                    bestHit = newHit;
+            }
         }
 
         _gameLogic.HitBall(bestHit.PlayerId, bestHit.HitAngle, bestHit.HitForce);
@@ -155,13 +174,8 @@ public class EvilAI : IGameAI
         var forceVec = Vector3.forward * (GameLogic.MaxStrokeForce * forceFrac);
         ballBody.AddForce(Quaternion.Euler(0, angle, 0) * forceVec, ForceMode.Impulse);
         var physicsScene = SimulationScene.GetPhysicsScene();
-        for (int nSteps = 0; nSteps < 300; ++nSteps)
-        {
-            if (_playerBalls.All(ball => ball.Body.IsSleeping()))
-                break;
-
+        for (int nSteps = 0; nSteps < 30 && _playerBalls.Any(ball => !ball.Body.IsSleeping()); ++nSteps)
             physicsScene.Simulate(GameLogic.FrameDeltaTime);
-        }
 
         var distance = Vector3.Distance(_playerBalls[_playerId].Body.position, targetPosition);
         var place = 0;

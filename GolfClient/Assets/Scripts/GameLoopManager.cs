@@ -79,7 +79,7 @@ public class GameLoopManager : MonoBehaviour
         _server = new LocalServer(gameSettings);
         Debug.Log("Total players: " + _playerBalls.Length);
         _localPlayerIds = Enumerable
-            .Range(0, _playerBalls.Length - 1)
+            .Range(0, _playerBalls.Length)
             .Where(id => gameSettings.PlayerTypes[id] == PlayerType.Human)
             .ToArray();
         Physics.autoSimulation = false;

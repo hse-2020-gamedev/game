@@ -74,7 +74,7 @@ public class GameLogic
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         bool success = SceneLoadSubscribers.TryDequeue(out var callback);
-        Assert.IsTrue(success);
+        Assert.IsTrue(success, "No scene loader subscribed?");
 
         callback(scene);
     }
