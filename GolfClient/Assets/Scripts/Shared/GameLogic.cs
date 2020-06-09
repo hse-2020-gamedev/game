@@ -178,8 +178,14 @@ public class GameLogic
 
     private void NextMove()
     {
-        // TODO: check if finished
-
+        if (PlayerBalls[0].getLayerId() != 0) {
+            Events.Enqueue(new Event.Finish("Player 0 win!"));
+        }
+        
+        if (PlayerBalls[1].getLayerId() != 0) {
+            Events.Enqueue(new Event.Finish("Player 1 win!"));
+        }
+        
         Events.Enqueue(new Event.TurnOfPlayer(CurrentPlayer));
         if (PlayerTypes[CurrentPlayer] != PlayerType.Human)
         {

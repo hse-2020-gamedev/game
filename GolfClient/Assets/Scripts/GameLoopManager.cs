@@ -8,11 +8,16 @@ using UnityEngine.UI;
 
 public class GameLoopManager : MonoBehaviour
 {
+    
+    private Button _goToMenuButton;
+    private string _menuSceneName = "Menu";
     private IServer _server;
     private Status _status;
     private CameraPositionManager _cameraPositionManager;
     private PlayerBall[] _playerBalls;
     private int[] _localPlayerIds;
+    private GameObject _scorePanel;
+    private GameObject _finalText;
     public float ForceImageFillAmount;
     private float strokeAngle;
     
@@ -45,7 +50,14 @@ public class GameLoopManager : MonoBehaviour
             public readonly int PlayerId;
         }
 
-        // Finished,
+        public class Finished : Status 
+        {
+            public Finished(string message) {
+                msg = message;
+            }
+            public readonly string msg;
+
+        }
         // WaitingOtherPlayers
     }
     
@@ -53,6 +65,11 @@ public class GameLoopManager : MonoBehaviour
     internal void Start()
     {
         _playerBalls = FindObjectsOfType<PlayerBall>();
+        _scorePanel = GameObject.Find("/RootObject/Canvas/ScorePanel");
+        _finalText = GameObject.Find("/RootObject/Canvas/ScorePanel/Text");
+        _goToMenuButton = GameObject.Find("/RootObject/Canvas/ScorePanel/OKButton").GetComponent<Button>();
+        _goToMenuButton.onClick.AddListener(OnGoToMenuButtonClick);
+        Debug.Log(_scorePanel);
         _cameraPositionManager = new CameraPositionManager(_playerBalls[0]);
         var gameSettings = new GameSettings();
         gameSettings.SceneName = SceneManager.GetActiveScene().name;
@@ -94,9 +111,9 @@ public class GameLoopManager : MonoBehaviour
                     // Waiting for remote player to make turn.
                     _status = new Status.WaitingEvents();
                 }
-            }
-            else
-            {
+            } else if (ev is Event.Finish finishEvent) {
+                _status = new Status.Finished(finishEvent.Message);
+            } else {
                 throw new NotImplementedException();
             }
         }
@@ -132,6 +149,15 @@ public class GameLoopManager : MonoBehaviour
                 _server.HitBall(moving.PlayerId, moving.Manager.StrokeAngle, moving.Manager.StrokeForcePerc);
                 _status = new Status.WaitingEvents();
             }
+        } else if (_status is Status.Finished finished) {
+            _finalText.GetComponent<Text>().text = finished.msg;
+            _scorePanel.SetActive(true);
+            Time.timeScale = 0f;
         }
+    }
+
+    void OnGoToMenuButtonClick()
+    {
+        SceneManager.LoadScene(_menuSceneName);
     }
 }

@@ -25,6 +25,9 @@ public abstract class Event
     public class Finish : Event
     {
         public string Message;
+        public Finish(string msg) {
+            this.Message = msg;
+        }
     }
     
 }
