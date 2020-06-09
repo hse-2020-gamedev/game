@@ -33,6 +33,7 @@ public class GameLoopManager : MonoBehaviour
             {
                 Traj = traj;
                 FollowedBall = ballToFollow;
+                Debug.Log("FOLLOWED BALL is " + FollowedBall);
             }
 
             public readonly Trajectory Traj;
@@ -75,7 +76,7 @@ public class GameLoopManager : MonoBehaviour
         _cameraPositionManager = new CameraPositionManager(_playerBalls);
         var gameSettings = new GameSettings();
         gameSettings.SceneName = SceneManager.GetActiveScene().name;
-        gameSettings.PlayerTypes = new[] {PlayerType.DummyAI, PlayerType.EvilAI};
+        gameSettings.PlayerTypes = new[] {PlayerType.Human, PlayerType.DummyAI};
         _server = new LocalServer(gameSettings);
         Debug.Log("Total players: " + _playerBalls.Length);
         _localPlayerIds = Enumerable
