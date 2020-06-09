@@ -1,14 +1,16 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 public enum PlayerType
 {
     Human,
     DummyAI,
-    YourCoolAI
+    EvilAI
 }
 
 public class GameSettings
@@ -27,8 +29,8 @@ public class GameLogic
     public readonly IGameAI[] AIs;
     public int NumberOfPlayers => PlayerTypes.Length;
 
-    public readonly Scene SimulationScene;
-    public readonly GameSettings _gameSettings;
+    public Scene SimulationScene { get; private set; }
+    public readonly GameSettings GameSettings;
     public PlayerBall[] PlayerBalls { get; private set; }
     public GameObject TargetHole { get; private set; }
 
@@ -47,36 +49,45 @@ public class GameLogic
         }
     }
 
-    public readonly Queue<Event> Events;
+    public readonly ConcurrentQueue<UnityAction<Scene>> SceneLoadSubscribers;
+    public readonly ConcurrentQueue<Event> Events;
     
     public GameLogic(GameSettings gameSettings)
     {
-        _gameSettings = gameSettings;
-        
-        // Initialize simulation scene:
-        var sceneParameters = new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D); 
-        var task = SceneManager.LoadSceneAsync(gameSettings.SceneName, sceneParameters);
-        SimulationScene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
-        
-        // Prepare AI:
+        Events = new ConcurrentQueue<Event>();
+
+        GameSettings = gameSettings;
+
+        SceneLoadSubscribers = new ConcurrentQueue<UnityAction<Scene>>();
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
+        // Start scene loading
+        SceneManager.LoadSceneAsync(gameSettings.SceneName, new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D));
+        SceneLoadSubscribers.Enqueue(OnSimulationSceneLoaded);
+
+        // Prepare AI
         CurrentPlayer = 0;
         PlayerTypes = gameSettings.PlayerTypes;
-        if (PlayerTypes.All(type => type != PlayerType.Human))
-        {
-            throw new ArgumentException("Games without human players are not allowed.");
-        }
-        
-        Events = new Queue<Event>();
         AIs = new IGameAI[NumberOfPlayers];
-        
-        // The rest of the initialization is performed in OnSimulationSceneLoaded.
-        task.completed += OnSimulationSceneLoaded;
     }
 
-    private void OnSimulationSceneLoaded(AsyncOperation operation)
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        var rootGameObject = SimulationScene.GetRootGameObjects()[0];
+        bool success = SceneLoadSubscribers.TryDequeue(out var callback);
+        Assert.IsTrue(success);
 
+        callback(scene);
+    }
+
+    private void OnSimulationSceneLoaded(Scene scene)
+    {
+        Debug.Log("GameLogic got scene");
+
+        SimulationScene = scene;
+
+        var rootGameObjects = SimulationScene.GetRootGameObjects();
+        var rootGameObject = rootGameObjects[0];
+        
         // Disable GameLoopManager in the physics scene.
         rootGameObject.GetComponentInChildren<GameLoopManager>().gameObject.SetActive(false);
 
@@ -103,6 +114,9 @@ public class GameLogic
 
         // Find player balls.
         PlayerBalls = rootGameObject.GetComponentsInChildren<PlayerBall>();
+        foreach (var playerBall in PlayerBalls)
+            playerBall.Body.sleepThreshold = 0.5f;
+
         if (PlayerBalls.Length != NumberOfPlayers)
         {
             throw new ArgumentException($"Inconsistent number of players: {PlayerBalls.Length} vs {NumberOfPlayers}");
@@ -115,9 +129,15 @@ public class GameLogic
             {
                 case PlayerType.Human:
                     AIs[i] = null;
+                    Debug.Log(i + " is HUMAN");
                     break;
                 case PlayerType.DummyAI:
                     AIs[i] = new DummyAI(this, i);
+                    Debug.Log(i + " is DUMMYAI");
+                    break;
+                case PlayerType.EvilAI:
+                    AIs[i] = new EvilAI(this, i);
+                    Debug.Log(i + " is EVILAI");
                     break;
                 default:
                     throw new ArgumentException($"Unknown player type: {PlayerTypes[i]}");
@@ -129,7 +149,7 @@ public class GameLogic
 
     public void HitBall(int playerId, float angle, float forceFrac)
     {
-        if (playerId != CurrentPlayer) throw new ArgumentException($"Wrong player ID: {playerId}. Expected: {CurrentPlayer}");
+        //if (playerId != CurrentPlayer) throw new ArgumentException($"Wrong player ID: {playerId}. Expected: {CurrentPlayer}");
         if (forceFrac < 0 || forceFrac > 1) throw new ArgumentException($"Invalid force fraction value: {forceFrac}");
 
         var ballBody = PlayerBalls[playerId].Body;  
@@ -139,17 +159,9 @@ public class GameLogic
 
         var physicsScene = SimulationScene.GetPhysicsScene();
 
-        int nSteps = 0;
-        int SleepFrame = 0;
-        while (SleepFrame < 50) {
-            if (AllBallsSleeping()) {
-                SleepFrame += 1;
-            } else {
-                SleepFrame = 0;
-            }
+        for (int nSteps = 0; !AllBallsSleeping(); ++nSteps) {
             physicsScene.Simulate(FrameDeltaTime);
             trajectory.AddFrame(Frame.Extract(PlayerBalls));
-            nSteps++;
             if (nSteps > 3000)
             {
                 Debug.Log($"Ball0Position: {PlayerBalls[0].transform.position}, " +
@@ -158,15 +170,13 @@ public class GameLogic
                 Debug.Log($"Ball1Position: {PlayerBalls[1].transform.position}, " +
                           $"Ball1Velocity: {PlayerBalls[1].Body.velocity}, " +
                           $"Ball1Sleeping: {PlayerBalls[1].Body.IsSleeping()}");
-
                 throw new ApplicationException("Simulation is too long.");
             }
         }
         
-        Events.Enqueue(new Event.PlayTrajectory(trajectory));
+        Events.Enqueue(new Event.PlayTrajectory(trajectory, playerId));
         
         CurrentPlayer = (CurrentPlayer + 1) % NumberOfPlayers;
-        NextMove();
     }
 
     private bool AllBallsSleeping()
@@ -179,7 +189,7 @@ public class GameLogic
         return PlayerTypes[CurrentPlayer] != PlayerType.Human;
     }
 
-    private void NextMove()
+    public void NextMove()
     {
         if (PlayerBalls[0].getLayerId() != 0) {
             Events.Enqueue(new Event.Finish("Player 0 win!"));

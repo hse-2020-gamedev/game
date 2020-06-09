@@ -11,6 +11,8 @@ public interface IServer
 
     void LeaveGame();
 
+    void NextMove();
+
     [CanBeNull]
     Event NextEvent();
 }

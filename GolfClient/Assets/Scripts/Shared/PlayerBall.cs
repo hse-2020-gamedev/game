@@ -7,11 +7,10 @@ public class PlayerBall : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Body = GetComponent<Rigidbody>(); 
-        Body.sleepThreshold = 2f; // Default is 0.005
+        Body.sleepThreshold = 1f; // Default is 0.005
     }
 
-    public Rigidbody Body { get; private set; }
+    public Rigidbody Body => GetComponent<Rigidbody>();
     
     public int getLayerId() {
         return gameObject.layer;
