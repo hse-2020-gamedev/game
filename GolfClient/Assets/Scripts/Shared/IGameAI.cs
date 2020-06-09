@@ -13,24 +13,32 @@ public interface IGameAI
 
 public class DummyAI : IGameAI
 {
+    private volatile bool _makeTurnAfterLoading = false;
     private GameLogic _gameLogic;
     private int _playerId;
-    public readonly Scene SimulationScene;
-    public PlayerBall[] PlayerBalls { get; private set; }
+    public Scene SimulationScene;
+    private volatile PlayerBall[] _playerBalls;
 
     public DummyAI(GameLogic gameLogic, int playerId)
     {
         _gameLogic = gameLogic;
         _playerId = playerId;
 
-        var sceneParameters = new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D); 
-        var task = SceneManager.LoadSceneAsync(_gameLogic._gameSettings.SceneName, sceneParameters);
-        SimulationScene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
-        task.completed += OnSimulationSceneLoaded;
+        SceneManager.LoadSceneAsync(
+            _gameLogic.GameSettings.SceneName, 
+            new LoadSceneParameters(
+                LoadSceneMode.Additive, 
+                LocalPhysicsMode.Physics3D
+            )
+        );
+
+        _gameLogic.SceneLoadSubscribers.Enqueue(OnSceneLoaded);
+
     }
 
-    private void OnSimulationSceneLoaded(AsyncOperation operation)
+    private void OnSceneLoaded(Scene scene)
     {
+        SimulationScene = scene;
         var rootGameObject = SimulationScene.GetRootGameObjects()[0];
 
         // Disable GameLoopManager in the physics scene.
@@ -55,11 +63,23 @@ public class DummyAI : IGameAI
         }
 
         // Find player balls.
-        PlayerBalls = rootGameObject.GetComponentsInChildren<PlayerBall>();
+        _playerBalls = rootGameObject.GetComponentsInChildren<PlayerBall>();
+
+        if (_makeTurnAfterLoading)
+        {
+            MakeTurn();
+        }
     }
 
     public void MakeTurn()
     {
+        
+        if (_playerBalls == null)
+        {
+            _makeTurnAfterLoading = true;
+            return;
+        }
+        
         var ballPosition = _gameLogic.PlayerBalls[_playerId].transform.position;
         var targetPosition = _gameLogic.TargetHole.transform.position;
 
@@ -101,11 +121,11 @@ public class DummyAI : IGameAI
         
         for (int i = 0; i < _gameLogic.NumberOfPlayers; i++)
         {
-            PlayerBalls[i].Body.transform.position = _gameLogic.PlayerBalls[i].Body.transform.position;
-            PlayerBalls[i].Body.position = _gameLogic.PlayerBalls[i].Body.position;
+            _playerBalls[i].Body.transform.position = _gameLogic.PlayerBalls[i].Body.transform.position;
+            _playerBalls[i].Body.position = _gameLogic.PlayerBalls[i].Body.position;
             
         }
-        var ballBody = PlayerBalls[playerId].Body;
+        var ballBody = _playerBalls[playerId].Body;
         Debug.Log("STARTED EMULATE HIT");
         Debug.Log("ballBody.position = " + ballBody.position);
         Debug.Log("ballBody.transform.position = " + ballBody.transform.position);
@@ -116,7 +136,7 @@ public class DummyAI : IGameAI
         int nSteps = 0;
         int SleepFrame = 0;
         while (SleepFrame < 50 && nSteps < 3000) {
-            if (PlayerBalls.All(ball => ball.Body.IsSleeping())) {
+            if (_playerBalls.All(ball => ball.Body.IsSleeping())) {
                 SleepFrame += 1;
             } else {
                 SleepFrame = 0;
