@@ -3,11 +3,16 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <RootNamespace>GrainInterfaces</RootNamespace>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Orleans.CodeGenerator.MSBuild" Version="3.2.0-rc2" />
       <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="3.2.0-rc2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\GolfClient\Assembly-CSharp.csproj" />
     </ItemGroup>
 
 </Project>

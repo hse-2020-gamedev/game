@@ -6,15 +6,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GolfServer", "GolfServer\As
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServerManagerGrain", "GameServerManagerGrain\GameServerManagerGrain.csproj", "{44384EF2-A03A-492A-A06D-7F9B73FE5ADE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LobbyServerGrain", "LobbyServerGrain\LobbyServerGrain.csproj", "{6698DBEB-B6A8-464A-A9DE-64677B510705}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grains", "Grains\Grains.csproj", "{6698DBEB-B6A8-464A-A9DE-64677B510705}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrontendServer", "FrontendServer\FrontendServer.csproj", "{45C06670-904C-4646-B0C2-AA2BA652635C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrontendServerOld", "FrontendServerOld\FrontendServerOld.csproj", "{45C06670-904C-4646-B0C2-AA2BA652635C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrainInterfaces", "GrainInterfaces\GrainInterfaces.csproj", "{FF3F5BA8-62BE-4770-865A-B9564B168F59}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silo", "Silo\Silo.csproj", "{FA9C3470-DA83-4BFF-81B2-26BE7F66D261}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication", "WebApplication\WebApplication.csproj", "{B910CBB5-DB77-4BA8-A360-3DF28CEA071B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrontendServer", "FrontendServer\FrontendServer.csproj", "{B910CBB5-DB77-4BA8-A360-3DF28CEA071B}"
 EndProject
 #Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GolfShared", "GolfShared\GolfShared.csproj", "{A610534D-4D96-47CA-ACDA-6F5C73222792}"
 #EndProject

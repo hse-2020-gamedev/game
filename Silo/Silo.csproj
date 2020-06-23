@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\LobbyServerGrain\LobbyServerGrain.csproj" />
+      <ProjectReference Include="..\Grains\Grains.csproj" />
     </ItemGroup>
 
 </Project>

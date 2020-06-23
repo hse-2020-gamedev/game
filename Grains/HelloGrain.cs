@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using GrainInterfaces;
 
-namespace LobbyServerGrain
+namespace Grains
 {
     public class HelloGrain : Orleans.Grain, IHello
     {

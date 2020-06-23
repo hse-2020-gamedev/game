@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using LobbyServerGrain;
+using Grains;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
