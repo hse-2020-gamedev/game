@@ -29,7 +29,7 @@ namespace FrontendServer.Controllers
         public async Task<Guid> SearchGame(string levelName)
         {
             _logger.LogInformation($"SearchGame in level '{levelName}'.");
-            var lobbyGrain = this._client.GetGrain<ILobby>(0);
+            var lobbyGrain = _client.GetGrain<ILobby>(0);
             Guid cookie = await lobbyGrain.SearchGame(levelName);
             return cookie;
         }
@@ -41,15 +41,15 @@ namespace FrontendServer.Controllers
             try
             {
                 _logger.LogDebug($"CheckStatus with cookie '{cookie}'.");
-                var lobbyGrain = this._client.GetGrain<ILobby>(0);
+                var lobbyGrain = _client.GetGrain<ILobby>(0);
                 return Ok(await lobbyGrain.CheckStatus(cookie));
             }
             catch (PlayerNotFoundException e)
             {
-                return NotFound(); 
+                return NotFound(e.Message); 
             }
         }
-        
+
         [HttpPost]
         [Route("StopSearching")]
         public async Task<IActionResult> StopSearching(Guid cookie)
@@ -57,13 +57,13 @@ namespace FrontendServer.Controllers
             try
             {
                 _logger.LogInformation($"StopSearching with cookie '{cookie}'.");
-                var lobbyGrain = this._client.GetGrain<ILobby>(0);
+                var lobbyGrain = _client.GetGrain<ILobby>(0);
                 await lobbyGrain.StopSearching(cookie);
                 return Ok();
             }
-            catch (PlayerNotFoundException)
+            catch (PlayerNotFoundException e)
             {
-                return NotFound();
+                return NotFound(e.Message);
             }
         }
     }

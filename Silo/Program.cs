@@ -46,6 +46,7 @@ namespace Silo
                     options.ServiceId = "Golf";
                 })
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(HelloGrain).Assembly).WithReferences())
+                .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(LobbyGrain).Assembly).WithReferences())
                 .ConfigureLogging(logging => logging.AddConsole());
 
             var host = builder.Build();

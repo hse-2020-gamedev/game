@@ -25,19 +25,25 @@ namespace Grains
                 LevelName = levelName;
             }
         }
+
+        private const int GameServerManagerCount = 2;
         
         private readonly ILogger _logger;
         private readonly Dictionary<string, Guid> _waitingPlayersOnLevel = new Dictionary<string, Guid>();
         private readonly Dictionary<Guid, FormedGame> _formedGames = new Dictionary<Guid, FormedGame>();
         private readonly Dictionary<Guid, string> _levelNameByCookie = new Dictionary<Guid, string>();
+        private readonly Random _random = new Random();
         
         public LobbyGrain(ILogger<HelloGrain> logger)
         {
             _logger = logger;
         }
 
-        public Task<Guid> SearchGame(string levelName)
+        public async Task<Guid> SearchGame(string levelName)
         {
+            var gameServerManagerGrain = GrainFactory.GetGrain<IGameServerManager>(0);
+            _logger.LogInformation(await gameServerManagerGrain.Hello());
+            
             // TODO: Guids are not really secure, replace with real random.
             // TODO: See https://security.stackexchange.com/questions/890/are-guids-safe-for-one-time-tokens
             var cookie = Guid.NewGuid();
@@ -58,7 +64,8 @@ namespace Grains
                 _waitingPlayersOnLevel.Remove(levelName);
             }
 
-            return Task.FromResult(cookie);
+            // return Task.FromResult(cookie);
+            return cookie;
         }
 
         public Task<string?> CheckStatus(Guid cookie)
@@ -73,7 +80,14 @@ namespace Grains
                 return Task.FromResult<string?>(null);
             }
 
-            return Task.FromResult($"Matched on level {_formedGames[cookie].LevelName}")!;
+            var formedGame = _formedGames[cookie];
+
+            var gameSettings = new GameSettings();
+            gameSettings.PlayerTypes = new[] {PlayerType.Human, PlayerType.Human};
+            gameSettings.SceneName = formedGame.LevelName;
+
+            var gameServerManager = GrainFactory.GetGrain<IGameServerManager>(_random.Next(GameServerManagerCount));
+            return gameServerManager.StartGame(gameSettings, formedGame.PlayerCookies)!;
         }
 
         public Task StopSearching(Guid cookie)

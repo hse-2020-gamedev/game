@@ -8,8 +8,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServerManagerGrain", "G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grains", "Grains\Grains.csproj", "{6698DBEB-B6A8-464A-A9DE-64677B510705}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrontendServerOld", "FrontendServerOld\FrontendServerOld.csproj", "{45C06670-904C-4646-B0C2-AA2BA652635C}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrainInterfaces", "GrainInterfaces\GrainInterfaces.csproj", "{FF3F5BA8-62BE-4770-865A-B9564B168F59}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Silo", "Silo\Silo.csproj", "{FA9C3470-DA83-4BFF-81B2-26BE7F66D261}"
@@ -44,10 +42,6 @@ Global
 		{6698DBEB-B6A8-464A-A9DE-64677B510705}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6698DBEB-B6A8-464A-A9DE-64677B510705}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6698DBEB-B6A8-464A-A9DE-64677B510705}.Release|Any CPU.Build.0 = Release|Any CPU
-		{45C06670-904C-4646-B0C2-AA2BA652635C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{45C06670-904C-4646-B0C2-AA2BA652635C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{45C06670-904C-4646-B0C2-AA2BA652635C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{45C06670-904C-4646-B0C2-AA2BA652635C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FF3F5BA8-62BE-4770-865A-B9564B168F59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FF3F5BA8-62BE-4770-865A-B9564B168F59}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF3F5BA8-62BE-4770-865A-B9564B168F59}.Release|Any CPU.ActiveCfg = Release|Any CPU

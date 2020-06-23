@@ -54,19 +54,6 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\ClientAssets\Scenes\MenuBehaviourScript.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\ChangeBallLayer.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\GameLoopManager.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\IServerHandle.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\LocalServer.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\Event.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\GameLogic.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\IGameAI.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\PlayerBall.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\Trajectory.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Ui\StrokeAngleIndicator.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Ui\StrokeForceUI.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Ui\StrokeManager.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Utils\VectorExtensions.cs" />
      <Compile Include="Assets\Scripts\Server.cs" />
      <None Include="Assets\ClientAssets\Materials\Ball.shader" />
      <None Include="Assets\ClientAssets\Materials\Hole.shader" />
