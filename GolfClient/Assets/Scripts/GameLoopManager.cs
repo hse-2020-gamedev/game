@@ -93,6 +93,7 @@ public class GameLoopManager : MonoBehaviour
     {
         if (_status is Status.WaitingEvents)
         {
+            _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);   
             Debug.Log("Waiting for events");
             var ev = _server.NextEvent();
             if (ev == null)
@@ -115,6 +116,7 @@ public class GameLoopManager : MonoBehaviour
                 }
                 else
                 {
+                     _cameraPositionManager.FollowBall(movingPlayerId);
                     // Waiting for remote player to make turn.
                     _status = new Status.WaitingEvents();
                 }
@@ -126,9 +128,13 @@ public class GameLoopManager : MonoBehaviour
         }
         else if (_status is Status.BallIsRolling rolling)
         {
+            _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);
             var trajectory = rolling.Traj;
             if (rolling.CurrentFrame >= trajectory.Frames.Count)
             {
+                
+                Debug.Log("Next Move!");
+                _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);
                 _status = new Status.WaitingEvents();
                 _server.NextMove();
             }
@@ -143,9 +149,13 @@ public class GameLoopManager : MonoBehaviour
                     ballTransform.position = ballStatus.Position;
                     ballTransform.rotation = ballStatus.Rotation;
                 }
-                _cameraPositionManager.FollowBall(rolling.FollowedBall);
+                if (rolling.CurrentFrame + 1 == trajectory.Frames.Count) {
+                   _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);
+                } else {
+                   _cameraPositionManager.FollowBall(rolling.FollowedBall);
+                }
                 ++rolling.CurrentFrame;
-            }
+            }                                                                      
         }
         else if (_status is Status.LocalPlayerMoving moving)
         {
