@@ -24,42 +24,25 @@ public class DummyAI : IGameAI
         _gameLogic = gameLogic;
         _playerId = playerId;
 
-        _gameLogic.SceneLoadSubscribers.Enqueue(OnSceneLoaded);
-
-        SceneManager.LoadSceneAsync(
+        var sceneAsync = SceneManager.LoadSceneAsync(
             _gameLogic.GameSettings.SceneName, 
             new LoadSceneParameters(
                 LoadSceneMode.Additive, 
                 LocalPhysicsMode.Physics3D
             )
         );
+        var scene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
+        sceneAsync.completed += _ => OnSceneLoaded(scene);
     }
 
     private void OnSceneLoaded(Scene scene)
     {
+        Debug.Log("DummyAI got scene");
+
         SimulationScene = scene;
         var rootGameObject = SimulationScene.GetRootGameObjects()[0];
 
-        // Disable GameLoopManager in the physics scene.
-        rootGameObject.GetComponentInChildren<GameLoopManager>().gameObject.SetActive(false);
-
-        // Disable cameras in the physics scene.
-        foreach (var camera in rootGameObject.GetComponentsInChildren<Camera>())
-        {
-            camera.gameObject.SetActive(false);
-        }
-
-        // Disable light in the physics scene.
-        foreach (var light in rootGameObject.GetComponentsInChildren<Light>())
-        {
-            light.gameObject.SetActive(false);
-        }
-
-        // Make all objects in the physics scene invisible.
-        foreach (var renderer in rootGameObject.GetComponentsInChildren<Renderer>())
-        {
-            renderer.enabled = false;
-        }
+        GameLogic.MakeSceneInvisible(scene);
 
         // Find player balls.
         _playerBalls = rootGameObject.GetComponentsInChildren<PlayerBall>();

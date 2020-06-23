@@ -49,7 +49,7 @@ public class GameLogic
         }
     }
 
-    public readonly ConcurrentQueue<UnityAction<Scene>> SceneLoadSubscribers;
+    // public readonly ConcurrentQueue<UnityAction<Scene>> SceneLoadSubscribers;
     public readonly ConcurrentQueue<Event> Events;
     
     public GameLogic(GameSettings gameSettings)
@@ -58,12 +58,16 @@ public class GameLogic
 
         GameSettings = gameSettings;
 
-        SceneLoadSubscribers = new ConcurrentQueue<UnityAction<Scene>>();
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        // SceneLoadSubscribers = new ConcurrentQueue<UnityAction<Scene>>();
+        // SceneManager.sceneLoaded += OnSceneLoaded;
 
         // Start scene loading
-        SceneManager.LoadSceneAsync(gameSettings.SceneName, new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D));
-        SceneLoadSubscribers.Enqueue(OnSimulationSceneLoaded);
+        var sceneAsync = SceneManager.LoadSceneAsync(
+            gameSettings.SceneName, 
+            new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D));
+        var scene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
+        sceneAsync.completed += _ => OnSimulationSceneLoaded(scene);
+        // SceneLoadSubscribers.Enqueue(OnSimulationSceneLoaded);
 
         // Prepare AI
         CurrentPlayer = 0;
@@ -71,46 +75,26 @@ public class GameLogic
         AIs = new IGameAI[NumberOfPlayers];
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        bool success = SceneLoadSubscribers.TryDequeue(out var callback);
-        Assert.IsTrue(success, "No scene loader subscribed?");
-
-        callback(scene);
-    }
-
+    // private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    // {
+    //     bool success = SceneLoadSubscribers.TryDequeue(out var callback);
+    //     Assert.IsTrue(success, "No scene loader subscribed?");
+    //
+    //     callback(scene);
+    // }
+    
     private void OnSimulationSceneLoaded(Scene scene)
     {
         Debug.Log("GameLogic got scene");
 
         SimulationScene = scene;
-
-        var rootGameObjects = SimulationScene.GetRootGameObjects();
-        var rootGameObject = rootGameObjects[0];
+        MakeSceneInvisible(scene);
         
-        // Disable GameLoopManager in the physics scene.
-        rootGameObject.GetComponentInChildren<GameLoopManager>().gameObject.SetActive(false);
+        var rootGameObjects = scene.GetRootGameObjects();
+        var rootGameObject = rootGameObjects[0];
 
         TargetHole = rootGameObject.GetComponentsInChildren<Transform>()
             .First(child => child.gameObject.name == "TargetHole").gameObject;
-
-        // Disable cameras in the physics scene.
-        foreach (var camera in rootGameObject.GetComponentsInChildren<Camera>())
-        {
-            camera.gameObject.SetActive(false);
-        }
-
-        // Disable light in the physics scene.
-        foreach (var light in rootGameObject.GetComponentsInChildren<Light>())
-        {
-            light.gameObject.SetActive(false);
-        }
-
-        // Make all objects in the physics scene invisible.
-        foreach (var renderer in rootGameObject.GetComponentsInChildren<Renderer>())
-        {
-            renderer.enabled = false;
-        }
 
         // Find player balls.
         PlayerBalls = rootGameObject.GetComponentsInChildren<PlayerBall>();
@@ -145,6 +129,33 @@ public class GameLogic
         }
 
         NextMove();
+    }
+
+    public static void MakeSceneInvisible(Scene scene)
+    {
+        var rootGameObject = scene.GetRootGameObjects()[0];
+
+        // Disable GameLoopManager in the physics scene.
+        // rootGameObject.GetComponentsInChildren<Transform>()
+        //     .First(child => child.gameObject.name == "GameLoopManager").gameObject.SetActive(false);
+
+        // Disable cameras in the physics scene.
+        foreach (var camera in rootGameObject.GetComponentsInChildren<Camera>())
+        {
+            camera.gameObject.SetActive(false);
+        }
+
+        // Disable light in the physics scene.
+        foreach (var light in rootGameObject.GetComponentsInChildren<Light>())
+        {
+            light.gameObject.SetActive(false);
+        }
+
+        // Make all objects in the physics scene invisible.
+        foreach (var renderer in rootGameObject.GetComponentsInChildren<Renderer>())
+        {
+            renderer.enabled = false;
+        }
     }
 
     public void HitBall(int playerId, float angle, float forceFrac)

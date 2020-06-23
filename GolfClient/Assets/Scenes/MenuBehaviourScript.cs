@@ -26,17 +26,18 @@ public class MenuBehaviourScript : MonoBehaviour
     }
 
     void OnLevel0ButtonClick() {
-        SceneManager.LoadScene(GameSceneLevel0Name);      
+        LoadLevel(GameSceneLevel0Name);
     }
 
-    void OnLevel1ButtonClick() {
-        SceneManager.LoadScene(GameSceneLevel1Name);      
+    void OnLevel1ButtonClick()
+    {
+        LoadLevel(GameSceneLevel1Name);
     }
 
     void OnLevel2ButtonClick() {
-        SceneManager.LoadScene(GameSceneLevel2Name);      
+        LoadLevel(GameSceneLevel2Name);
     }
-    
+
     void OnStartButtonClick() {
         MainPanel.SetActive(false);
         ChooseLevelPanel.SetActive(true);
@@ -55,5 +56,25 @@ public class MenuBehaviourScript : MonoBehaviour
     void Update()
     {
         
+    }
+
+    private void LoadLevel(string sceneName)
+    {
+        var sceneAsync = SceneManager.LoadSceneAsync(sceneName, new LoadSceneParameters(LoadSceneMode.Single));
+        var scene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
+        sceneAsync.completed += _ =>
+        {
+            // GetComponentInChildren doesn't work for inactive objects.
+            // Hence, we have to traverse the children manually to enable GameLoopManager and UI Canvas.
+            var rootTransform = scene.GetRootGameObjects()[0].GetComponent<Transform>();
+            for (int i = 0; i < rootTransform.childCount; i++)
+            {
+                var child = rootTransform.GetChild(i).gameObject;
+                if (child.GetComponent<GameLoopManager>() != null || child.GetComponent<Canvas>() != null)
+                {
+                    child.SetActive(true);
+                }
+            }
+        };
     }
 }
