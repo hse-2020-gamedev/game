@@ -8,11 +8,16 @@ using UnityEngine.UI;
 
 public class GameLoopManager : MonoBehaviour
 {
+    
+    private Button _goToMenuButton;
+    private string _menuSceneName = "Menu";
     private IServer _server;
     private Status _status;
     private CameraPositionManager _cameraPositionManager;
     private PlayerBall[] _playerBalls;
     private int[] _localPlayerIds;
+    private GameObject _scorePanel;
+    private GameObject _finalText;
     public float ForceImageFillAmount;
     private float strokeAngle;
     
@@ -24,12 +29,15 @@ public class GameLoopManager : MonoBehaviour
         
         public class BallIsRolling : Status
         {
-            public BallIsRolling(Trajectory traj)
+            public BallIsRolling(Trajectory traj, int ballToFollow)
             {
                 Traj = traj;
+                FollowedBall = ballToFollow;
+                Debug.Log("FOLLOWED BALL is " + FollowedBall);
             }
 
             public readonly Trajectory Traj;
+            public readonly int FollowedBall;
             public int CurrentFrame;
         }
 
@@ -45,7 +53,14 @@ public class GameLoopManager : MonoBehaviour
             public readonly int PlayerId;
         }
 
-        // Finished,
+        public class Finished : Status 
+        {
+            public Finished(string message) {
+                msg = message;
+            }
+            public readonly string msg;
+
+        }
         // WaitingOtherPlayers
     }
     
@@ -53,12 +68,21 @@ public class GameLoopManager : MonoBehaviour
     internal void Start()
     {
         _playerBalls = FindObjectsOfType<PlayerBall>();
-        _cameraPositionManager = new CameraPositionManager(_playerBalls[0]);
+        _scorePanel = GameObject.Find("/RootObject/Canvas/ScorePanel");
+        _finalText = GameObject.Find("/RootObject/Canvas/ScorePanel/Text");
+        _goToMenuButton = GameObject.Find("/RootObject/Canvas/ScorePanel/OKButton").GetComponent<Button>();
+        _goToMenuButton.onClick.AddListener(OnGoToMenuButtonClick);
+        Debug.Log(_scorePanel);
+        _cameraPositionManager = new CameraPositionManager(_playerBalls);
         var gameSettings = new GameSettings();
         gameSettings.SceneName = SceneManager.GetActiveScene().name;
         gameSettings.PlayerTypes = new[] {PlayerType.Human, PlayerType.DummyAI};
         _server = new LocalServer(gameSettings);
-        _localPlayerIds = new[] { 0 };
+        Debug.Log("Total players: " + _playerBalls.Length);
+        _localPlayerIds = Enumerable
+            .Range(0, _playerBalls.Length)
+            .Where(id => gameSettings.PlayerTypes[id] == PlayerType.Human)
+            .ToArray();
         Physics.autoSimulation = false;
         _status = new Status.WaitingEvents();
         // TODO: make deterministic.
@@ -80,7 +104,7 @@ public class GameLoopManager : MonoBehaviour
             Debug.Log("Received event");
             if (ev is Event.PlayTrajectory playTrajectoryEvent)
             {
-                _status = new Status.BallIsRolling(playTrajectoryEvent.Trajectory);
+                _status = new Status.BallIsRolling(playTrajectoryEvent.Trajectory, playTrajectoryEvent.BallToFollow);
             }
             else if (ev is Event.TurnOfPlayer turnOfPlayerEvent)
             {
@@ -94,9 +118,9 @@ public class GameLoopManager : MonoBehaviour
                     // Waiting for remote player to make turn.
                     _status = new Status.WaitingEvents();
                 }
-            }
-            else
-            {
+            } else if (ev is Event.Finish finishEvent) {
+                _status = new Status.Finished(finishEvent.Message);
+            } else {
                 throw new NotImplementedException();
             }
         }
@@ -106,6 +130,7 @@ public class GameLoopManager : MonoBehaviour
             if (rolling.CurrentFrame >= trajectory.Frames.Count)
             {
                 _status = new Status.WaitingEvents();
+                _server.NextMove();
             }
             else
             {
@@ -118,13 +143,14 @@ public class GameLoopManager : MonoBehaviour
                     ballTransform.position = ballStatus.Position;
                     ballTransform.rotation = ballStatus.Rotation;
                 }
+                _cameraPositionManager.FollowBall(rolling.FollowedBall);
                 ++rolling.CurrentFrame;
             }
         }
         else if (_status is Status.LocalPlayerMoving moving)
         {
             moving.Manager.Update();
-            _cameraPositionManager.UpdateCameraPosition(moving.Manager.StrokeAngle);
+            _cameraPositionManager.ViewBall(moving.PlayerId, moving.Manager.StrokeAngle);
             strokeAngle = moving.Manager.StrokeAngle;
             ForceImageFillAmount = moving.Manager.StrokeForcePerc;
             if (moving.Manager.Done)
@@ -132,6 +158,15 @@ public class GameLoopManager : MonoBehaviour
                 _server.HitBall(moving.PlayerId, moving.Manager.StrokeAngle, moving.Manager.StrokeForcePerc);
                 _status = new Status.WaitingEvents();
             }
+        } else if (_status is Status.Finished finished) {
+            _finalText.GetComponent<Text>().text = finished.msg;
+            _scorePanel.SetActive(true);
+            Time.timeScale = 0f;
         }
+    }
+
+    void OnGoToMenuButtonClick()
+    {
+        SceneManager.LoadScene(_menuSceneName);
     }
 }
