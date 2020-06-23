@@ -77,5 +77,6 @@ bin
 *.x86_64
 *_Data
 
-# Symlink
-GolfServer/Assets/ClientAssets
+# Symlinks
+GolfServer/Assets/Scripts/Shared
+GolfServer/Assets/Scenes/Levels
