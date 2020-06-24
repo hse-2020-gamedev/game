@@ -73,40 +73,49 @@ public class DummyAI : IGameAI
         var ballPosition = _gameLogic.PlayerBalls[_playerId].transform.position;
         var targetPosition = _gameLogic.TargetHole.transform.position;
 
-        float targetHoleDirection = ballPosition.xz().LookAt(targetPosition.xz());
-        Debug.Log("ANGLE = " + targetHoleDirection);
+        float targetHoleDirection = ballPosition.xz().LookAt(_gameLogic.PlayerBalls[_playerId].GoalHint.xz());
+        float distanceToTarget = Vector3.Distance(ballPosition, _gameLogic.PlayerBalls[_playerId].GoalHint);
+        float distanceToHole = Vector3.Distance(ballPosition, targetPosition);
 
-        bool closeEnough = Vector3.Distance(ballPosition, targetPosition) < 4;
-        float minAngle = targetHoleDirection - 90;
-        float maxAngle = targetHoleDirection + 90;
+        if (distanceToHole < 0.1f) 
+        { 
+            Debug.Log("DummyAI: UPDATE! " + distanceToTarget + " -- really slight shot");
+            _gameLogic.HitBall(_playerId, targetHoleDirection, 0.01f);
+            return;
+        }
+        bool closeEnough = distanceToTarget < 4;
+        float minAngle = targetHoleDirection - 60;
+        float maxAngle = targetHoleDirection + 60;
         float angleStep = closeEnough ? 10f : 30f;
         float minForce = closeEnough ? 0.05f : 0.3f;
         float maxForce = 0.9f;
         float forceStep = closeEnough ? 0.05f : 0.1f;
         float bestAngle = minAngle;
         float bestForce = minForce;
-        float bestDistance = EmulateHit(_playerId, minAngle, minForce);
+        Tuple<int, float> bestOption = EmulateHit(_playerId, minAngle, minForce);
         Random random = new Random();
         for (float angle = minAngle; angle <= maxAngle; angle += angleStep)
         {
             for (float force = minForce; force <= maxForce; force += forceStep)
             {
                 if (Math.Abs(angle - minAngle) < 1e-6 && Math.Abs(force - minForce) < 1e-6) continue;
-                float distance = EmulateHit(_playerId, angle, force);
-                if (distance < bestDistance && random.NextDouble() < 0.75)
+                if (random.NextDouble() > 0.75) continue;
+                Tuple<int, float> option = EmulateHit(_playerId, angle, force);
+                if (option.Item1 > bestOption.Item1 || 
+                    (option.Item1 == bestOption.Item1 && option.Item2 < bestOption.Item2))
                 {
-                    Debug.Log("UPDATE! " + bestDistance + " " + bestAngle + " " + bestForce);
-                    bestDistance = distance;
+                    bestOption = option;
                     bestAngle = angle;
                     bestForce = force;
                 }
             }
         }
+        Debug.Log("DummyAI: UPDATE! " + distanceToTarget + " --> " + bestOption.Item2 + ", checkpoint = " + bestOption.Item1 + ", angle = " + bestAngle + ", F = " + bestForce);
         _gameLogic.HitBall(_playerId, bestAngle, bestForce);
     }
     
     
-    public float EmulateHit(int playerId, float angle, float forceFrac)
+    public Tuple<int, float> EmulateHit(int playerId, float angle, float forceFrac)
     {
         
         for (int i = 0; i < _gameLogic.NumberOfPlayers; i++)
@@ -116,16 +125,12 @@ public class DummyAI : IGameAI
             
         }
         var ballBody = _playerBalls[playerId].Body;
-        Debug.Log("STARTED EMULATE HIT");
-        Debug.Log("ballBody.position = " + ballBody.position);
-        Debug.Log("ballBody.transform.position = " + ballBody.transform.position);
-        Debug.Log("ballBody = " + ballBody);;
         var forceVec = Vector3.forward * (GameLogic.MaxStrokeForce * forceFrac);
         ballBody.AddForce(Quaternion.Euler(0, angle, 0) * forceVec, ForceMode.Impulse);
         var physicsScene = SimulationScene.GetPhysicsScene();
         int nSteps = 0;
         int SleepFrame = 0;
-        while (SleepFrame < 50 && nSteps < 3000) {
+        while (SleepFrame < 50 && nSteps < 500) {
             if (_playerBalls.All(ball => ball.Body.IsSleeping())) {
                 SleepFrame += 1;
             } else {
@@ -134,13 +139,9 @@ public class DummyAI : IGameAI
             physicsScene.Simulate(GameLogic.FrameDeltaTime);
             nSteps++;
         }
-        Debug.Log("nSteps =" + nSteps);
-        Debug.Log("DONE EMULATE HIT");
-        Debug.Log("ballBody.position = " + ballBody.position);
-        Debug.Log("ballBody.transform.position = " + ballBody.transform.position);
-        Debug.Log("ballBody = " + ballBody);
-        var position = _gameLogic.TargetHole.transform.position;
-        Debug.Log("distance = " + Vector3.Distance(ballBody.position, position));
-        return Vector3.Distance(ballBody.position, position);
+        //var position = _gameLogic.TargetHole.transform.position;
+        var goalHintPosition = _playerBalls[_playerId].GoalHint;
+        return new Tuple<int, float>(_playerBalls[_playerId].WaypointIndex, Vector3.Distance(ballBody.position, goalHintPosition));
+        //(_playerBalls[_playerId].WaypointIndex, Vector3.Distance(ballBody.position, goalHintPosition));
     }
 }

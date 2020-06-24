@@ -84,7 +84,7 @@ public class GameLoopManager : MonoBehaviour
         _cameraPositionManager = new CameraPositionManager(_playerBalls);
         var gameSettings = new GameSettings();
         gameSettings.SceneName = SceneManager.GetActiveScene().name;
-        gameSettings.PlayerTypes = new[] {PlayerType.EvilAI, PlayerType.EvilAI};
+        gameSettings.PlayerTypes = new[] {PlayerType.EvilAI, PlayerType.DummyAI};
         _server = new LocalServer(gameSettings);
         Debug.Log("Total players: " + _playerBalls.Length);
         _localPlayerIds = Enumerable
