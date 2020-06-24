@@ -24,15 +24,7 @@ public class DummyAI : IGameAI
         _gameLogic = gameLogic;
         _playerId = playerId;
 
-        _gameLogic.SceneLoadSubscribers.Enqueue(OnSceneLoaded);
-
-        SceneManager.LoadSceneAsync(
-            _gameLogic.GameSettings.SceneName, 
-            new LoadSceneParameters(
-                LoadSceneMode.Additive, 
-                LocalPhysicsMode.Physics3D
-            )
-        );
+        _gameLogic.SceneLoader.LoadSimulationScene(OnSceneLoaded);
     }
 
     private void OnSceneLoaded(Scene scene)
@@ -72,7 +64,6 @@ public class DummyAI : IGameAI
 
     public void MakeTurn()
     {
-        
         if (_playerBalls == null)
         {
             _makeTurnAfterLoading = true;

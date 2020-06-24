@@ -25,7 +25,15 @@ public class GameLoopManager : MonoBehaviour
     {
         private Status() { }
 
-        public class WaitingEvents : Status { }
+        public class WaitingEvents : Status
+        {
+            public WaitingEvents(int displayedPlayerId)
+            {
+                DisplayedPlayerId = displayedPlayerId;
+            }
+
+            public readonly int DisplayedPlayerId;
+        }
         
         public class BallIsRolling : Status
         {
@@ -76,7 +84,7 @@ public class GameLoopManager : MonoBehaviour
         _cameraPositionManager = new CameraPositionManager(_playerBalls);
         var gameSettings = new GameSettings();
         gameSettings.SceneName = SceneManager.GetActiveScene().name;
-        gameSettings.PlayerTypes = new[] {PlayerType.Human, PlayerType.DummyAI};
+        gameSettings.PlayerTypes = new[] {PlayerType.EvilAI, PlayerType.EvilAI};
         _server = new LocalServer(gameSettings);
         Debug.Log("Total players: " + _playerBalls.Length);
         _localPlayerIds = Enumerable
@@ -84,16 +92,17 @@ public class GameLoopManager : MonoBehaviour
             .Where(id => gameSettings.PlayerTypes[id] == PlayerType.Human)
             .ToArray();
         Physics.autoSimulation = false;
-        _status = new Status.WaitingEvents();
+        _status = new Status.WaitingEvents(_server.CurrentPlayerId);
         // TODO: make deterministic.
     }
 
     // Update is called once per frame
     internal void Update()
     {
-        if (_status is Status.WaitingEvents)
+        if (_status is Status.WaitingEvents waitingEvents)
         {
-            _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);   
+            _cameraPositionManager.FollowBall(waitingEvents.DisplayedPlayerId);
+
             Debug.Log("Waiting for events");
             var ev = _server.NextEvent();
             if (ev == null)
@@ -111,15 +120,10 @@ public class GameLoopManager : MonoBehaviour
             {
                 int movingPlayerId = turnOfPlayerEvent.playerId;
                 if (_localPlayerIds.Contains(movingPlayerId))
-                {
                     _status = new Status.LocalPlayerMoving(movingPlayerId, _playerBalls[movingPlayerId], strokeAngle);
-                }
                 else
-                {
-                     _cameraPositionManager.FollowBall(movingPlayerId);
                     // Waiting for remote player to make turn.
-                    _status = new Status.WaitingEvents();
-                }
+                    _status = new Status.WaitingEvents(movingPlayerId);
             } else if (ev is Event.Finish finishEvent) {
                 _status = new Status.Finished(finishEvent.Message);
             } else {
@@ -128,14 +132,12 @@ public class GameLoopManager : MonoBehaviour
         }
         else if (_status is Status.BallIsRolling rolling)
         {
-            _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);
             var trajectory = rolling.Traj;
             if (rolling.CurrentFrame >= trajectory.Frames.Count)
             {
                 
                 Debug.Log("Next Move!");
-                _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);
-                _status = new Status.WaitingEvents();
+                _status = new Status.WaitingEvents(_server.CurrentPlayerId);
                 _server.NextMove();
             }
             else
@@ -149,11 +151,7 @@ public class GameLoopManager : MonoBehaviour
                     ballTransform.position = ballStatus.Position;
                     ballTransform.rotation = ballStatus.Rotation;
                 }
-                if (rolling.CurrentFrame + 1 == trajectory.Frames.Count) {
-                   _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);
-                } else {
-                   _cameraPositionManager.FollowBall(rolling.FollowedBall);
-                }
+                _cameraPositionManager.FollowBall(rolling.FollowedBall);
                 ++rolling.CurrentFrame;
             }                                                                      
         }
@@ -166,7 +164,7 @@ public class GameLoopManager : MonoBehaviour
             if (moving.Manager.Done)
             {
                 _server.HitBall(moving.PlayerId, moving.Manager.StrokeAngle, moving.Manager.StrokeForcePerc);
-                _status = new Status.WaitingEvents();
+                _status = new Status.WaitingEvents(moving.PlayerId);
             }
         } else if (_status is Status.Finished finished) {
             _finalText.GetComponent<Text>().text = finished.msg;

@@ -1,11 +1,8 @@
 using System;
 using System.Linq;
-using System.Security.Cryptography;
 using UnityEngine;
-using System.Collections;
 using UnityEngine.SceneManagement;
 using Utils;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 public class EvilAI : IGameAI
 {
@@ -14,15 +11,8 @@ public class EvilAI : IGameAI
         public readonly int PlayerId;
         public readonly float HitAngle;
         public readonly float HitForce;
-        private readonly Vector2 _metricValue;
+        private readonly Vector3 _metricValue;
 
-        public HitInfo()
-        {
-            this.PlayerId = -1;
-            this.HitAngle = float.NaN;
-            this.HitForce = float.NaN;
-            this._metricValue = Vector2.positiveInfinity;
-        }
         public HitInfo(EvilAI parent, int playerId, float hitAngle, float hitForce)
         {
             this.PlayerId = playerId;
@@ -34,16 +24,21 @@ public class EvilAI : IGameAI
         public int CompareTo(HitInfo other)
         {
             var xCompare = _metricValue.x.CompareTo(other._metricValue.x);
-            return xCompare == 0 ? _metricValue.y.CompareTo(other._metricValue.y) : xCompare;
+            if (xCompare != 0)
+                return xCompare;
+
+            var yCompare = _metricValue.y.CompareTo(other._metricValue.y);
+            if (yCompare != 0)
+                return yCompare;
+
+            return _metricValue.z.CompareTo(other._metricValue.z);
         }
     }
 
-    private const float MinAngle = -0.2f;
-    private const float MaxAngle = 0.2f;
-    private const float AngleStep = 0.1f;
     private const float MinForce = 0.0f;
     private const float MaxForce = 1f;
-    private const int SearchSteps = 15;
+    private const float LinearSearchStep = 0.1f;
+    private const int BinarySearchSteps = 5;
 
     private volatile bool _makeTurnAfterLoading = false;
 
@@ -57,15 +52,7 @@ public class EvilAI : IGameAI
         _gameLogic = gameLogic;
         _playerId = playerId;
 
-        _gameLogic.SceneLoadSubscribers.Enqueue(OnSceneLoaded);
-
-        SceneManager.LoadSceneAsync(
-            _gameLogic.GameSettings.SceneName, 
-            new LoadSceneParameters(
-                LoadSceneMode.Additive, 
-                LocalPhysicsMode.Physics3D
-            )
-        );
+        _gameLogic.SceneLoader.LoadSimulationScene(OnSceneLoaded);
     }
 
     private void OnSceneLoaded(Scene scene)
@@ -122,45 +109,50 @@ public class EvilAI : IGameAI
             playerIds[j] = tmp;
         }
 
-        HitInfo bestHit = new HitInfo();
-        for (int playerId = 0; playerId < _gameLogic.NumberOfPlayers; ++playerId) {
-            var ballPosition = _gameLogic.PlayerBalls[_playerId].transform.position;
-            var targetPosition = _gameLogic.TargetHole.transform.position;
+        HitInfo bestHit = new HitInfo(this, _playerId, 0, 0);
+        for (int playerIndex = 0; playerIndex < _gameLogic.NumberOfPlayers; ++playerIndex)
+        {
+            int playerId = playerIds[playerIndex];
+            var ballPosition = _gameLogic.PlayerBalls[playerId].transform.position;
+            var targetPosition = _gameLogic.PlayerBalls[playerId].GoalHint;
 
-            float targetHoleDirection = ballPosition.xz().LookAt(targetPosition.xz()) + (playerId == _playerId ? 0 : 1);
-
-            for (float angle = targetHoleDirection + MinAngle;
-                angle <= targetHoleDirection + MaxAngle;
-                angle += AngleStep)
+            float angle = ballPosition.xz().LookAt(targetPosition.xz()) - (playerId == _playerId ? 0 : 180);
+            
+            HitInfo bestForceHit = new HitInfo(this, playerId, angle, MinForce);
+            for (float force = MinForce; force < MaxForce; force += LinearSearchStep)
             {
-                float forceL = MinForce;
-                float forceR = MaxForce;
-                for (int step = 0; step < SearchSteps; ++step)
-                {
-                    float forceML = (forceL * 2 + forceR) / 3;
-                    HitInfo hitML = new HitInfo(this, playerId, angle, forceML);
-
-                    float forceMR = (forceL + 2 * forceR) / 3;
-                    HitInfo hitMR = new HitInfo(this, playerId, angle, forceMR);
-
-                    int comparisonResult = forceML.CompareTo(forceMR);
-                    if (comparisonResult <= 0)
-                        forceL = forceML;
-                    if (comparisonResult >= 0)
-                        forceR = forceMR;
-                }
-
-                HitInfo newHit = new HitInfo(this, playerId, angle, (forceL + forceR) / 2);
-                if (newHit.CompareTo(bestHit) < 0 && Random.value < 0.8)
-                    bestHit = newHit;
+                HitInfo newForceHit = new HitInfo(this, playerId, angle, force);
+                if (newForceHit.CompareTo(bestForceHit) < 0 && Random.value < 0.9)
+                    bestForceHit = newForceHit;
             }
+
+            float forceL = bestForceHit.HitForce - LinearSearchStep;
+            float forceR = bestForceHit.HitForce + LinearSearchStep;
+            for (int step = 0; step < BinarySearchSteps; ++step)
+            {
+                float forceMl = (forceL * 2 + forceR) / 3;
+                HitInfo hitMl = new HitInfo(this, playerId, angle, forceMl);
+
+                float forceMr = (forceL + 2 * forceR) / 3;
+                HitInfo hitMr = new HitInfo(this, playerId, angle, forceMr);
+
+                int comparisonResult = hitMl.CompareTo(hitMr) * (playerId == _playerId ? -1 : 1);
+                if (comparisonResult <= 0)
+                    forceL = forceMl;
+                if (comparisonResult >= 0)
+                    forceR = forceMr;
+            }
+
+            HitInfo newHit = new HitInfo(this, playerId, angle, (forceL + forceR) / 2);
+            if (newHit.CompareTo(bestHit) < 0 && (playerId == _playerId || Random.value < 0.9))
+                bestHit = newHit;
         }
 
         _gameLogic.HitBall(bestHit.PlayerId, bestHit.HitAngle, bestHit.HitForce);
     }
 
 
-    public Vector2 EmulateHit(int ballOwnerId, float angle, float forceFrac)
+    public Vector3 EmulateHit(int ballOwnerId, float angle, float forceFrac)
     {
         for (int i = 0; i < _gameLogic.NumberOfPlayers; i++)
         {
@@ -168,16 +160,18 @@ public class EvilAI : IGameAI
             _playerBalls[i].Body.position = _gameLogic.PlayerBalls[i].Body.position;
 
         }
-        var targetPosition= _gameLogic.TargetHole.transform.position;
-
         var ballBody = _playerBalls[ballOwnerId].Body;
         var forceVec = Vector3.forward * (GameLogic.MaxStrokeForce * forceFrac);
         ballBody.AddForce(Quaternion.Euler(0, angle, 0) * forceVec, ForceMode.Impulse);
         var physicsScene = SimulationScene.GetPhysicsScene();
-        for (int nSteps = 0; nSteps < 30 && _playerBalls.Any(ball => !ball.Body.IsSleeping()); ++nSteps)
+        for (int nSteps = 0; nSteps < 300 && _playerBalls.Any(ball => !ball.Body.IsSleeping()); ++nSteps)
             physicsScene.Simulate(GameLogic.FrameDeltaTime);
 
-        var distance = Vector3.Distance(_playerBalls[_playerId].Body.position, targetPosition);
+        if (_playerBalls.Any(ball => !ball.Body.IsSleeping())) // most likely, out of bounds
+            return new Vector3(_gameLogic.NumberOfPlayers, -1, float.NaN);
+
+        var waypointIndex = _playerBalls[_playerId].WaypointIndex;
+        var distance = Vector3.Distance(_playerBalls[_playerId].Body.position, _playerBalls[_playerId].GoalHint);
         var place = 0;
 
         for (int i = 0; i < _gameLogic.NumberOfPlayers; ++i)
@@ -185,10 +179,12 @@ public class EvilAI : IGameAI
             if (i == _playerId)
                 continue;
 
-            if (Vector3.Distance(_playerBalls[i].Body.position, targetPosition) < distance)
+            var rivalWaypointIndex = _playerBalls[i].WaypointIndex;
+            var rivalDistance = Vector3.Distance(_playerBalls[i].Body.position, _playerBalls[i].GoalHint);
+            if (rivalWaypointIndex == waypointIndex && rivalDistance < distance || rivalWaypointIndex > waypointIndex)
                 ++place;
         }
 
-        return new Vector2(place, -distance);
+        return new Vector3(place, -waypointIndex, distance);
     }
 }

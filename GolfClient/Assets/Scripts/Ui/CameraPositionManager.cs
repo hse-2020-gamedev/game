@@ -6,10 +6,10 @@ using Object = UnityEngine.Object;
 
 public class CameraPositionManager {
     private PlayerBall[] _playerBalls;
-    private int followedBall;
-    private bool updateAngel = false;
-    private Vector3 followedBallPos;
-    private float followedBallAngel = 0;
+    // private int followedBall;
+    // private bool updateAngel = false;
+    // private Vector3 followedBallPos;
+    // private float followedBallAngel = 0;
    
     void SetCameraOverview() {
         GameObject mainCam = GameObject.Find("Main Camera");

@@ -49,21 +49,52 @@ public class GameLogic
         }
     }
 
-    public readonly ConcurrentQueue<UnityAction<Scene>> SceneLoadSubscribers;
-    public readonly ConcurrentQueue<Event> Events;
-    
+    // handles concurrent scene loading for AIs
+    public class SceneLoadHelper
+    {
+        public SceneLoadHelper(string sceneName, LoadSceneParameters sceneLoadParams)
+        {
+            _sceneName = sceneName;
+            _sceneLoadParams = sceneLoadParams;
+            _sceneLoadSubscribers = new ConcurrentQueue<UnityAction<Scene>>();
+
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+
+        public void OnDisable()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            if (_sceneLoadSubscribers.TryDequeue(out var callback))
+                callback(scene);
+            else
+                Debug.Log("Some scene was loaded without subscriber");
+        }
+
+        public void LoadSimulationScene(UnityAction<Scene> callback)
+        {
+            _sceneLoadSubscribers.Enqueue(callback);
+            SceneManager.LoadSceneAsync(_sceneName, _sceneLoadParams);
+        }
+
+        private readonly string _sceneName;
+        private readonly LoadSceneParameters _sceneLoadParams;
+        private readonly ConcurrentQueue<UnityAction<Scene>> _sceneLoadSubscribers;
+    }
+
+    public readonly ConcurrentQueue<Event> Events = new ConcurrentQueue<Event>();
+    public readonly SceneLoadHelper SceneLoader;
+
     public GameLogic(GameSettings gameSettings)
     {
-        Events = new ConcurrentQueue<Event>();
-
         GameSettings = gameSettings;
+        SceneLoader = new SceneLoadHelper(GameSettings.SceneName, new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D));
 
-        SceneLoadSubscribers = new ConcurrentQueue<UnityAction<Scene>>();
-        SceneManager.sceneLoaded += OnSceneLoaded;
-
-        // Start scene loading
-        SceneManager.LoadSceneAsync(gameSettings.SceneName, new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D));
-        SceneLoadSubscribers.Enqueue(OnSimulationSceneLoaded);
+        // Init scene loading
+        SceneLoader.LoadSimulationScene(OnSceneLoaded);
 
         // Prepare AI
         CurrentPlayer = 0;
@@ -71,15 +102,12 @@ public class GameLogic
         AIs = new IGameAI[NumberOfPlayers];
     }
 
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    private void OnDisable()
     {
-        bool success = SceneLoadSubscribers.TryDequeue(out var callback);
-        Assert.IsTrue(success, "No scene loader subscribed?");
-
-        callback(scene);
+        SceneLoader.OnDisable();
     }
 
-    private void OnSimulationSceneLoaded(Scene scene)
+    private void OnSceneLoaded(Scene scene)
     {
         Debug.Log("GameLogic got scene");
 
@@ -114,8 +142,7 @@ public class GameLogic
 
         // Find player balls.
         PlayerBalls = rootGameObject.GetComponentsInChildren<PlayerBall>();
-        foreach (var playerBall in PlayerBalls)
-            playerBall.Body.sleepThreshold = 0.5f;
+        SimulationScene.GetPhysicsScene().Simulate(0.01f); // zero step for colliders
 
         if (PlayerBalls.Length != NumberOfPlayers)
         {

@@ -8,7 +8,12 @@ using UnityEngine.SceneManagement;
 public class LocalServer : IServer
 {
     private GameLogic _gameLogic;
-    
+
+    int IServer.CurrentPlayerId
+    {
+        get { return _gameLogic.CurrentPlayer; }
+    }
+
     public LocalServer(GameSettings gameSettings)
     {
         _gameLogic = new GameLogic(gameSettings);
