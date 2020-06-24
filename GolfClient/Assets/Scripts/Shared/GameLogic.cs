@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Events;
@@ -186,7 +187,7 @@ public class GameLogic
 
         var physicsScene = SimulationScene.GetPhysicsScene();
 
-        for (int nSteps = 0; !AllBallsSleeping(); ++nSteps) {
+        for (int nSteps = 0; !BallsStopped(); ++nSteps) {
             physicsScene.Simulate(FrameDeltaTime);
             trajectory.AddFrame(Frame.Extract(PlayerBalls));
             if (nSteps > 3000)
@@ -206,7 +207,7 @@ public class GameLogic
         CurrentPlayer = (CurrentPlayer + 1) % NumberOfPlayers;
     }
 
-    private bool AllBallsSleeping()
+    private bool BallsStopped()
     {
         return PlayerBalls.All(ball => ball.Body.IsSleeping());
     }
@@ -218,18 +219,23 @@ public class GameLogic
 
     public void NextMove()
     {
-        if (PlayerBalls[0].getLayerId() != 0) {
-            Events.Enqueue(new Event.Finish("Player 0 win!"));
-        }
-        
-        if (PlayerBalls[1].getLayerId() != 0) {
-            Events.Enqueue(new Event.Finish("Player 1 win!"));
-        }
-        
-        Events.Enqueue(new Event.TurnOfPlayer(CurrentPlayer));
-        if (PlayerTypes[CurrentPlayer] != PlayerType.Human)
+        var winners = Enumerable
+            .Range(0, PlayerBalls.Length)
+            .Where(id => PlayerBalls[id].LayerId != 0)
+            .ToArray();
+        if (winners.Length > 0) 
         {
-            AIs[CurrentPlayer].MakeTurn();
+            Events.Enqueue(new Event.Finish(
+                "Player" + (winners.Length > 1 ? "s " : " ") + 
+                string.Join(", ", winners) + 
+                " won"
+            ));
+        }
+        else
+        {
+            Events.Enqueue(new Event.TurnOfPlayer(CurrentPlayer));
+            if (PlayerTypes[CurrentPlayer] != PlayerType.Human)
+                AIs[CurrentPlayer].MakeTurn();
         }
     }
 }
