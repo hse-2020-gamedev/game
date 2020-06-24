@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -25,15 +26,7 @@ public class GameLoopManager : MonoBehaviour
     {
         private Status() { }
 
-        public class WaitingEvents : Status
-        {
-            public WaitingEvents(int displayedPlayerId)
-            {
-                DisplayedPlayerId = displayedPlayerId;
-            }
-
-            public readonly int DisplayedPlayerId;
-        }
+        public class WaitingEvents : Status { }
         
         public class BallIsRolling : Status
         {
@@ -92,7 +85,8 @@ public class GameLoopManager : MonoBehaviour
             .Where(id => gameSettings.PlayerTypes[id] == PlayerType.Human)
             .ToArray();
         Physics.autoSimulation = false;
-        _status = new Status.WaitingEvents(_server.CurrentPlayerId);
+        _status = new Status.WaitingEvents();
+        _cameraPositionManager.FollowBall(_server.CurrentPlayerId);
         // TODO: make deterministic.
     }
 
@@ -101,7 +95,6 @@ public class GameLoopManager : MonoBehaviour
     {
         if (_status is Status.WaitingEvents waitingEvents)
         {
-            _cameraPositionManager.FollowBall(waitingEvents.DisplayedPlayerId);
 
             Debug.Log("Waiting for events");
             var ev = _server.NextEvent();
@@ -120,10 +113,15 @@ public class GameLoopManager : MonoBehaviour
             {
                 int movingPlayerId = turnOfPlayerEvent.playerId;
                 if (_localPlayerIds.Contains(movingPlayerId))
+                {
                     _status = new Status.LocalPlayerMoving(movingPlayerId, _playerBalls[movingPlayerId], strokeAngle);
+                }
                 else
+                {
                     // Waiting for remote player to make turn.
-                    _status = new Status.WaitingEvents(movingPlayerId);
+                    _cameraPositionManager.FollowBall(movingPlayerId);
+                    _status = new Status.WaitingEvents();
+                }
             } else if (ev is Event.Finish finishEvent) {
                 _status = new Status.Finished(finishEvent.Message);
             } else {
@@ -135,9 +133,9 @@ public class GameLoopManager : MonoBehaviour
             var trajectory = rolling.Traj;
             if (rolling.CurrentFrame >= trajectory.Frames.Count)
             {
-                
                 Debug.Log("Next Move!");
-                _status = new Status.WaitingEvents(_server.CurrentPlayerId);
+                _status = new Status.WaitingEvents();
+                _cameraPositionManager.FollowBall(_server.CurrentPlayerId);
                 _server.NextMove();
             }
             else
@@ -164,7 +162,7 @@ public class GameLoopManager : MonoBehaviour
             if (moving.Manager.Done)
             {
                 _server.HitBall(moving.PlayerId, moving.Manager.StrokeAngle, moving.Manager.StrokeForcePerc);
-                _status = new Status.WaitingEvents(moving.PlayerId);
+                _status = new Status.WaitingEvents();
             }
         } else if (_status is Status.Finished finished) {
             _finalText.GetComponent<Text>().text = finished.msg;

@@ -40,6 +40,10 @@ public class EvilAI : IGameAI
     private const float LinearSearchStep = 0.1f;
     private const int BinarySearchSteps = 5;
 
+    private const float MinAngle = -10f;
+    private const float MaxAngle = 10f;
+    private const float AngleStep = 5f;
+
     private volatile bool _makeTurnAfterLoading = false;
 
     private readonly GameLogic _gameLogic;
@@ -100,7 +104,7 @@ public class EvilAI : IGameAI
             return;
         }
 
-        int[] playerIds = Enumerable.Range(0, _gameLogic.NumberOfPlayers).ToArray();
+        int[] playerIds = Enumerable.Range(0, _gameLogic.NumberOfPlayers).ToArray(); // shuffling players
         for (int i = 0; i < _gameLogic.NumberOfPlayers; i++)
         {
             int tmp = playerIds[i];
@@ -116,36 +120,40 @@ public class EvilAI : IGameAI
             var ballPosition = _gameLogic.PlayerBalls[playerId].transform.position;
             var targetPosition = _gameLogic.PlayerBalls[playerId].GoalHint;
 
-            float angle = ballPosition.xz().LookAt(targetPosition.xz()) - (playerId == _playerId ? 0 : 180);
-            
-            HitInfo bestForceHit = new HitInfo(this, playerId, angle, MinForce);
-            for (float force = MinForce; force < MaxForce; force += LinearSearchStep)
+            float goalDirection = ballPosition.xz().LookAt(targetPosition.xz()) - (playerId == _playerId ? 0 : 180);
+            float minDirectionDelta = playerId == _playerId ? MinAngle : 0;
+            float maxDirectionDelta = playerId == _playerId ? MaxAngle : 0;
+            for (float angle = goalDirection + minDirectionDelta; angle <= goalDirection + maxDirectionDelta; angle += AngleStep)
             {
-                HitInfo newForceHit = new HitInfo(this, playerId, angle, force);
-                if (newForceHit.CompareTo(bestForceHit) < 0 && Random.value < 0.9)
-                    bestForceHit = newForceHit;
+                HitInfo bestForceHit = new HitInfo(this, playerId, angle, MinForce);
+                for (float force = MinForce; force <= MaxForce; force += LinearSearchStep)
+                {
+                    HitInfo newForceHit = new HitInfo(this, playerId, angle, force);
+                    if (newForceHit.CompareTo(bestForceHit) < 0 && Random.value < 0.9)
+                        bestForceHit = newForceHit;
+                }
+
+                float forceL = Math.Max(MinForce, bestForceHit.HitForce - LinearSearchStep);
+                float forceR = Math.Min(MaxForce, bestForceHit.HitForce + LinearSearchStep);
+                for (int step = 0; step < BinarySearchSteps; ++step)
+                {
+                    float forceMl = (forceL * 2 + forceR) / 3;
+                    HitInfo hitMl = new HitInfo(this, playerId, angle, forceMl);
+
+                    float forceMr = (forceL + 2 * forceR) / 3;
+                    HitInfo hitMr = new HitInfo(this, playerId, angle, forceMr);
+
+                    int comparisonResult = hitMl.CompareTo(hitMr) * (playerId == _playerId ? -1 : 1);
+                    if (comparisonResult <= 0)
+                        forceL = forceMl;
+                    if (comparisonResult >= 0)
+                        forceR = forceMr;
+                }
+
+                HitInfo newHit = new HitInfo(this, playerId, angle, (forceL + forceR) / 2);
+                if (newHit.CompareTo(bestHit) < 0 && (playerId == _playerId || Random.value < 0.9))
+                    bestHit = newHit;
             }
-
-            float forceL = bestForceHit.HitForce - LinearSearchStep;
-            float forceR = bestForceHit.HitForce + LinearSearchStep;
-            for (int step = 0; step < BinarySearchSteps; ++step)
-            {
-                float forceMl = (forceL * 2 + forceR) / 3;
-                HitInfo hitMl = new HitInfo(this, playerId, angle, forceMl);
-
-                float forceMr = (forceL + 2 * forceR) / 3;
-                HitInfo hitMr = new HitInfo(this, playerId, angle, forceMr);
-
-                int comparisonResult = hitMl.CompareTo(hitMr) * (playerId == _playerId ? -1 : 1);
-                if (comparisonResult <= 0)
-                    forceL = forceMl;
-                if (comparisonResult >= 0)
-                    forceR = forceMr;
-            }
-
-            HitInfo newHit = new HitInfo(this, playerId, angle, (forceL + forceR) / 2);
-            if (newHit.CompareTo(bestHit) < 0 && (playerId == _playerId || Random.value < 0.9))
-                bestHit = newHit;
         }
 
         _gameLogic.HitBall(bestHit.PlayerId, bestHit.HitAngle, bestHit.HitForce);
@@ -158,8 +166,8 @@ public class EvilAI : IGameAI
         {
             _playerBalls[i].Body.transform.position = _gameLogic.PlayerBalls[i].Body.transform.position;
             _playerBalls[i].Body.position = _gameLogic.PlayerBalls[i].Body.position;
-
         }
+
         var ballBody = _playerBalls[ballOwnerId].Body;
         var forceVec = Vector3.forward * (GameLogic.MaxStrokeForce * forceFrac);
         ballBody.AddForce(Quaternion.Euler(0, angle, 0) * forceVec, ForceMode.Impulse);

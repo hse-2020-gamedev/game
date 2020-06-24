@@ -9,6 +9,7 @@ public class PlayerBall : MonoBehaviour
     private Collider _currentWaypoint;
     public Vector3 GoalHint => GetWaypointGoal(_currentWaypoint);
     public int WaypointIndex => GetWaypointIndex(_currentWaypoint);
+    public int LayerId => gameObject.layer;
 
     // Start is called before the first frame update
     public void Start()
@@ -17,10 +18,6 @@ public class PlayerBall : MonoBehaviour
     }
 
     public Rigidbody Body => GetComponent<Rigidbody>();
-    
-    public int getLayerId() {
-        return gameObject.layer;
-    }
 
     // Update is called once per frame
     public void FixedUpdate()
