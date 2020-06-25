@@ -20,23 +20,12 @@ public class GameLogic
     public PlayerBall[] PlayerBalls { get; private set; }
     public GameObject TargetHole { get; private set; }
 
-    public class GameState
-    {
-        private GameState() { }
-
-        public sealed class WaitingForHumanPlayer : GameState
-        {
-            public readonly int PlayerId;
-
-            private WaitingForHumanPlayer(int playerId)
-            {
-                PlayerId = playerId;
-            }
-        }
-    }
-
     // public readonly ConcurrentQueue<UnityAction<Scene>> SceneLoadSubscribers;
     public readonly ConcurrentQueue<Event> Events;
+
+    public readonly BlockingCollection<Event> Events1 = new BlockingCollection<Event>();
+    public readonly BlockingCollection<Event> Events2 = new BlockingCollection<Event>();
+    private bool _newMove = false;
 
     public GameLogic(GameSettings gameSettings)
     {
@@ -114,6 +103,7 @@ public class GameLogic
             }
         }
 
+        _newMove = true;
         NextMove();
     }
 
@@ -171,9 +161,12 @@ public class GameLogic
             }
         }
 
-        Events.Enqueue(new Event.PlayTrajectory(trajectory, playerId));
-
-        CurrentPlayer = (CurrentPlayer + 1) % NumberOfPlayers;
+        lock (this)
+        {
+            CurrentPlayer = (CurrentPlayer + 1) % NumberOfPlayers;
+            _newMove = true;
+            EnqueueEvent(new Event.PlayTrajectory(trajectory, playerId));
+        }
     }
 
     private bool AllBallsSleeping()
@@ -188,18 +181,34 @@ public class GameLogic
 
     public void NextMove()
     {
-        if (PlayerBalls[0].getLayerId() != 0) {
-            Events.Enqueue(new Event.Finish("Player 0 win!"));
-        }
-
-        if (PlayerBalls[1].getLayerId() != 0) {
-            Events.Enqueue(new Event.Finish("Player 1 win!"));
-        }
-
-        Events.Enqueue(new Event.TurnOfPlayer(CurrentPlayer));
-        if (PlayerTypes[CurrentPlayer] != PlayerType.Human)
+        if (_newMove)
         {
-            AIs[CurrentPlayer].MakeTurn();
+            _newMove = false;
+
+            if (PlayerBalls[0].getLayerId() != 0) {
+                EnqueueEvent(new Event.Finish("Player 0 win!"));
+                CurrentPlayer = -1;
+                return;
+            }
+
+            if (PlayerBalls[1].getLayerId() != 0) {
+                EnqueueEvent(new Event.Finish("Player 1 win!"));
+                CurrentPlayer = -1;
+                return;
+            }
+
+            EnqueueEvent(new Event.TurnOfPlayer(CurrentPlayer));
+            if (PlayerTypes[CurrentPlayer] != PlayerType.Human)
+            {
+                AIs[CurrentPlayer].MakeTurn();
+            }
         }
+    }
+
+    private void EnqueueEvent(Event ev)
+    {
+        Events.Enqueue(ev);
+        Events1.Add(ev);
+        Events2.Add(ev);
     }
 }

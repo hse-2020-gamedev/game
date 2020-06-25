@@ -26,13 +26,13 @@ namespace FrontendServer.Controllers
 
         [HttpPost]
         [Route("SearchGame")]
-        public async Task<Guid> SearchGame(string settingsString)
+        public async Task<string> SearchGame(string settingsString)
         {
             var settings = GameSettings.Parse(settingsString);
             _logger.LogInformation($"SearchGame in level '{settings}'.");
             var lobbyGrain = _client.GetGrain<ILobby>(0);
             Guid cookie = await lobbyGrain.SearchGame(settings);
-            return cookie;
+            return cookie.ToString();
         }
 
         [HttpPost]

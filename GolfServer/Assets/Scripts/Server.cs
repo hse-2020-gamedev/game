@@ -36,8 +36,8 @@ public class Server : MonoBehaviour
 		try
 		{
 			// Create listener on localhost with OS-assigned port.
-			// var tcpListener = new TcpListener(IPAddress.Any, 0);
-			var tcpListener = new TcpListener(IPAddress.Any, 6015);
+			var tcpListener = new TcpListener(IPAddress.Any, 0);
+			// var tcpListener = new TcpListener(IPAddress.Any, 6015);
 			tcpListener.Start();
 
 			Debug.Log($"Server is listening on {tcpListener.LocalEndpoint}");
@@ -109,6 +109,24 @@ public class Server : MonoBehaviour
 
 				Debug.Log($"Client {clientId} connected with cookie {cookie}");
 				var game = _ongoingGames[cookie];
+
+				BlockingCollection<Event> clientEventsQueue;
+				if (game.Cookies[0] == cookie)
+				{
+					// Player one
+					clientEventsQueue = game.Logic.Events1;
+					clientEventsQueue.Add(new Event.LocalPlayerId(0));
+				}
+				else
+				{
+					// Player two
+					clientEventsQueue = game.Logic.Events2;
+					clientEventsQueue.Add(new Event.LocalPlayerId(1));
+				}
+
+				new Thread(() => SendEventsToClient(stream, clientEventsQueue))
+					.Start();
+
 				while (true)
 				{
 					var command = (ClientToServerMessage) formatter.Deserialize(stream);
@@ -117,10 +135,13 @@ public class Server : MonoBehaviour
 						switch (command)
 						{
 							case ClientToServerMessage.Heartbeat _:
+								Debug.Log("NextMove");
 								game.Logic.NextMove();
 								break;
 							case ClientToServerMessage.HitBall hitBallCmd:
 								// TODO: check player id
+								Debug.Log($"Hit ball {hitBallCmd.PlayerId} " +
+								          $"with angle {hitBallCmd.Angle} and force {hitBallCmd.Force}");
 								game.Logic.HitBall(hitBallCmd.PlayerId, hitBallCmd.Angle, hitBallCmd.Force);
 								break;
 						}
@@ -130,28 +151,13 @@ public class Server : MonoBehaviour
 		}
 	}
 
-// /// <summary>
-	// /// Send message to client using socket connection.
-	// /// </summary>
-	// private void SendMessage() {
-	// 	if (connectedTcpClient == null) {
-	// 		return;
-	// 	}
-	//
-	// 	try {
-	// 		// Get a stream object for writing.
-	// 		NetworkStream stream = connectedTcpClient.GetStream();
-	// 		if (stream.CanWrite) {
-	// 			string serverMessage = "This is a message from your server.";
-	// 			// Convert string message to byte array.
-	// 			byte[] serverMessageAsByteArray = Encoding.ASCII.GetBytes(serverMessage);
-	// 			// Write byte array to socketConnection stream.
-	// 			stream.Write(serverMessageAsByteArray, 0, serverMessageAsByteArray.Length);
-	// 			Debug.Log("Server sent his message - should be received by client");
-	// 		}
-	// 	}
-	// 	catch (SocketException socketException) {
-	// 		Debug.Log("Socket exception: " + socketException);
-	// 	}
-	// }
+	private void SendEventsToClient(NetworkStream stream, BlockingCollection<Event> events)
+	{
+		var formatter = new BinaryFormatter();
+		while (true)
+		{
+			formatter.Serialize(stream, events.Take());
+			stream.Flush();
+		}
+	}
 }

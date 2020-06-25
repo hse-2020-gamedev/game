@@ -13,6 +13,8 @@ echo "SOLUTION_DIR: $SOLUTION_DIR"
 ln -sfn "$SOLUTION_DIR/GolfClient/Assets/Scripts/Shared" "$SOLUTION_DIR/GolfServer/Assets/Scripts/Shared"
 ln -sfn "$SOLUTION_DIR/GolfClient/Assets/Scenes/Levels" "$SOLUTION_DIR/GolfServer/Assets/Scenes/Levels"
 ln -sfn "$SOLUTION_DIR/GolfClient/Assets/Prefabs" "$SOLUTION_DIR/GolfServer/Assets/Prefabs"
+ln -sfn "$SOLUTION_DIR/GolfClient/Assets/Materials" "$SOLUTION_DIR/GolfServer/Assets/Materials"
+ln -sfn "$SOLUTION_DIR/GolfClient/Assets/3D Models" "$SOLUTION_DIR/GolfServer/Assets/3D Models"
 
 SERVER_EXE_DIR="$HOME/HSEGolf"
 mkdir -p "$SERVER_EXE_DIR"

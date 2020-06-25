@@ -64,6 +64,9 @@
      <Compile Include="Assets\Scripts\Shared\RemoteServer.cs" />
      <Compile Include="Assets\Scripts\Shared\Trajectory.cs" />
      <Compile Include="Assets\Scripts\Shared\Utils\VectorExtensions.cs" />
+     <None Include="Assets\Materials\Ball.shader" />
+     <None Include="Assets\Materials\Hole.shader" />
+     <None Include="Assets\Materials\DepthMask.shader" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>/home/atonkikh/work/game/GolfServer/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
  </Reference>

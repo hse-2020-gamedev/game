@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -81,7 +82,17 @@ public class GameLoopManager : MonoBehaviour
 
         Debug.Log(_scorePanel);
         _cameraPositionManager = new CameraPositionManager(_playerBalls);
-        _server = new LocalServer(gameSettings);
+
+        if (remote)
+        {
+            _server = new RemoteServer(
+                gameSettings,
+                new IPEndPoint(IPAddress.Parse("127.0.0.1"), 6013));
+        }
+        else
+        {
+            _server = new LocalServer(gameSettings);
+        }
 
         Debug.Log("Total players: " + _playerBalls.Length);
         _localPlayerIds = Enumerable
@@ -109,12 +120,19 @@ public class GameLoopManager : MonoBehaviour
             }
 
             Debug.Log("Received event");
-            if (ev is Event.PlayTrajectory playTrajectoryEvent)
+            if (ev is Event.LocalPlayerId localPlayerId)
             {
+                Debug.Log($"Received LocalPlayerId = {localPlayerId.playerId}");
+                _localPlayerIds = new[] {localPlayerId.playerId};
+            }
+            else if (ev is Event.PlayTrajectory playTrajectoryEvent)
+            {
+                Debug.Log("Received PlayTrajectory");
                 _status = new Status.BallIsRolling(playTrajectoryEvent.Trajectory, playTrajectoryEvent.BallToFollow);
             }
             else if (ev is Event.TurnOfPlayer turnOfPlayerEvent)
             {
+                Debug.Log($"Received TurnOfPlayer {turnOfPlayerEvent.playerId}");
                 int movingPlayerId = turnOfPlayerEvent.playerId;
                 if (_localPlayerIds.Contains(movingPlayerId))
                 {
