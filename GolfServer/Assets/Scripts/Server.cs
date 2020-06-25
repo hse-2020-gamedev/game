@@ -42,8 +42,8 @@ public class Server : MonoBehaviour
 
 			Debug.Log($"Server is listening on {tcpListener.LocalEndpoint}");
 
-			Console.Out.WriteLine(((IPEndPoint) tcpListener.LocalEndpoint).Port);
-			Console.Out.Flush();
+			Console.Error.WriteLine(((IPEndPoint) tcpListener.LocalEndpoint).Port);
+			Console.Error.Flush();
 
 			parentListenerThread = new Thread(ListenParentProcess) {IsBackground = true};
 			parentListenerThread.Start();

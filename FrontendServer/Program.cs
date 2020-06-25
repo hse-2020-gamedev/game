@@ -14,6 +14,7 @@ namespace FrontendServer
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseUrls("https://*:6014", "http://*:6013");
                     webBuilder.UseStartup<Startup>();
                 });
     }

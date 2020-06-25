@@ -57,6 +57,7 @@
      <Compile Include="Assets\Scripts\Shared\Event.cs" />
      <Compile Include="Assets\Scripts\Shared\EvilAI.cs" />
      <Compile Include="Assets\Scripts\Shared\GameLogic.cs" />
+     <Compile Include="Assets\Scripts\Shared\GameSettings.cs" />
      <Compile Include="Assets\Scripts\Shared\IGameAI.cs" />
      <Compile Include="Assets\Scripts\Shared\IServerHandle.cs" />
      <Compile Include="Assets\Scripts\Shared\PlayerBall.cs" />

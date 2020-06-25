@@ -26,9 +26,10 @@ namespace FrontendServer.Controllers
 
         [HttpPost]
         [Route("SearchGame")]
-        public async Task<Guid> SearchGame(GameSettings settings)
+        public async Task<Guid> SearchGame(string settingsString)
         {
-            _logger.LogInformation($"SearchGame in level '{settings.SceneName}'.");
+            var settings = GameSettings.Parse(settingsString);
+            _logger.LogInformation($"SearchGame in level '{settings}'.");
             var lobbyGrain = _client.GetGrain<ILobby>(0);
             Guid cookie = await lobbyGrain.SearchGame(settings);
             return cookie;
@@ -42,7 +43,7 @@ namespace FrontendServer.Controllers
             {
                 _logger.LogDebug($"CheckStatus with cookie '{cookie}'.");
                 var lobbyGrain = _client.GetGrain<ILobby>(0);
-                return Ok(await lobbyGrain.CheckStatus(cookie));
+                return Ok((await lobbyGrain.CheckStatus(cookie))?.ToString());
             }
             catch (PlayerNotFoundException e)
             {

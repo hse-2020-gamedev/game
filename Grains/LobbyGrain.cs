@@ -65,7 +65,7 @@ namespace Grains
             return cookie;
         }
 
-        public Task<EndPoint?> CheckStatus(Guid cookie)
+        public Task<IPEndPoint?> CheckStatus(Guid cookie)
         {
             if (!_settingsByCookie.ContainsKey(cookie))
             {
@@ -74,7 +74,7 @@ namespace Grains
 
             if (!_formedGames.ContainsKey(cookie))
             {
-                return Task.FromResult<EndPoint?>(null);
+                return Task.FromResult<IPEndPoint?>(null);
             }
 
             var formedGame = _formedGames[cookie];

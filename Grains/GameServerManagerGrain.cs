@@ -30,15 +30,17 @@ namespace Grains
             var processSettings = new ProcessStartInfo(golfServerExecutable)
             {
                 RedirectStandardInput = true,
-                RedirectStandardOutput = true
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
             _serverProcess = Process.Start(processSettings);
 
-            var portString = _serverProcess.StandardOutput.ReadLine();
+            var portString = _serverProcess.StandardError.ReadLine();
             if (portString == null)
             {
                 throw new ApplicationException("Did not receive port number from child process.");
             }
+            _logger.LogWarning($"FOOBAR PortString {portString}");
 
             _serverPort = Int32.Parse(portString);
             _logger.LogInformation($"Child process is listening on port {_serverPort}");
@@ -51,14 +53,14 @@ namespace Grains
             return Task.FromResult("Hello")!;
         }
 
-        public Task<EndPoint> StartGame(GameSettings settings, Guid[] playerCookies)
+        public Task<IPEndPoint> StartGame(GameSettings settings, Guid[] playerCookies)
         {
             settings.Write(_serverProcess.StandardInput);
             foreach (var cookie in playerCookies)
             {
                 _serverProcess.StandardInput.WriteLine(cookie);
             }
-            return Task.FromResult<EndPoint>(new IPEndPoint(IPAddress.Loopback, _serverPort));
+            return Task.FromResult(new IPEndPoint(IPAddress.Loopback, _serverPort));
         }
     }
 }
