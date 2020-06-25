@@ -6,8 +6,8 @@ namespace GrainInterfaces
 {
     public interface ILobby : Orleans.IGrainWithIntegerKey
     {
-        Task<Guid> SearchGame(string levelName);
-        Task<string?> CheckStatus(Guid cookie);
+        Task<Guid> SearchGame(GameSettings settings);
+        Task<EndPoint?> CheckStatus(Guid cookie);
 
         Task StopSearching(Guid cookie);
         // Task<string?> ReadyForStart(Guid cookie);

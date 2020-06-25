@@ -79,4 +79,8 @@ bin
 
 # Symlinks
 GolfServer/Assets/Scripts/Shared
+GolfServer/Assets/Scripts/Shared.meta
 GolfServer/Assets/Scenes/Levels
+GolfServer/Assets/Scenes/Levels.meta
+GolfServer/Assets/Prefabs
+GolfServer/Assets/Prefabs.meta

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class LocalServer : IServer
+public class LocalServer : IServerHandle
 {
     private GameLogic _gameLogic;
     

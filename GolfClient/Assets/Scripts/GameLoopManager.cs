@@ -8,10 +8,10 @@ using UnityEngine.UI;
 
 public class GameLoopManager : MonoBehaviour
 {
-    
+
     private Button _goToMenuButton;
     private string _menuSceneName = "Menu";
-    private IServer _server;
+    private IServerHandle _server;
     private Status _status;
     private CameraPositionManager _cameraPositionManager;
     private PlayerBall[] _playerBalls;
@@ -20,13 +20,13 @@ public class GameLoopManager : MonoBehaviour
     private GameObject _finalText;
     public float ForceImageFillAmount;
     private float strokeAngle;
-    
+
     private abstract class Status
     {
         private Status() { }
 
         public class WaitingEvents : Status { }
-        
+
         public class BallIsRolling : Status
         {
             public BallIsRolling(Trajectory traj, int ballToFollow)
@@ -49,11 +49,11 @@ public class GameLoopManager : MonoBehaviour
                 Manager = new StrokeManager(playerBall, strokeAngle);
             }
 
-            public readonly StrokeManager Manager;   
+            public readonly StrokeManager Manager;
             public readonly int PlayerId;
         }
 
-        public class Finished : Status 
+        public class Finished : Status
         {
             public Finished(string message) {
                 msg = message;
@@ -63,26 +63,32 @@ public class GameLoopManager : MonoBehaviour
         }
         // WaitingOtherPlayers
     }
-    
+
     // Start is called before the first frame update
     internal void Start()
     {
+        var gameSettings = MenuBehaviourScript.Settings;
+        var remote = MenuBehaviourScript.Remote;
+
+        Debug.Log($"GameSettings: {gameSettings}");
+        Debug.Log($"Remote server: {remote}");
+
         _playerBalls = FindObjectsOfType<PlayerBall>();
         _scorePanel = GameObject.Find("/RootObject/Canvas/ScorePanel");
         _finalText = GameObject.Find("/RootObject/Canvas/ScorePanel/Text");
         _goToMenuButton = GameObject.Find("/RootObject/Canvas/ScorePanel/OKButton").GetComponent<Button>();
         _goToMenuButton.onClick.AddListener(OnGoToMenuButtonClick);
+
         Debug.Log(_scorePanel);
         _cameraPositionManager = new CameraPositionManager(_playerBalls);
-        var gameSettings = new GameSettings();
-        gameSettings.SceneName = SceneManager.GetActiveScene().name;
-        gameSettings.PlayerTypes = new[] {PlayerType.Human, PlayerType.DummyAI};
         _server = new LocalServer(gameSettings);
+
         Debug.Log("Total players: " + _playerBalls.Length);
         _localPlayerIds = Enumerable
             .Range(0, _playerBalls.Length)
             .Where(id => gameSettings.PlayerTypes[id] == PlayerType.Human)
             .ToArray();
+
         Physics.autoSimulation = false;
         _status = new Status.WaitingEvents();
         // TODO: make deterministic.
@@ -93,7 +99,7 @@ public class GameLoopManager : MonoBehaviour
     {
         if (_status is Status.WaitingEvents)
         {
-            _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);   
+            _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);
             Debug.Log("Waiting for events");
             var ev = _server.NextEvent();
             if (ev == null)
@@ -101,7 +107,7 @@ public class GameLoopManager : MonoBehaviour
                 Debug.Log("No events yet.");
                 return;
             }
-        
+
             Debug.Log("Received event");
             if (ev is Event.PlayTrajectory playTrajectoryEvent)
             {
@@ -132,7 +138,7 @@ public class GameLoopManager : MonoBehaviour
             var trajectory = rolling.Traj;
             if (rolling.CurrentFrame >= trajectory.Frames.Count)
             {
-                
+
                 Debug.Log("Next Move!");
                 _cameraPositionManager.FollowBall(1 - _localPlayerIds[0]);
                 _status = new Status.WaitingEvents();
@@ -155,7 +161,7 @@ public class GameLoopManager : MonoBehaviour
                    _cameraPositionManager.FollowBall(rolling.FollowedBall);
                 }
                 ++rolling.CurrentFrame;
-            }                                                                      
+            }
         }
         else if (_status is Status.LocalPlayerMoving moving)
         {

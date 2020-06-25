@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -13,10 +14,64 @@ public enum PlayerType
     EvilAI
 }
 
+[Serializable]
 public class GameSettings
 {
     public string SceneName;
     public PlayerType[] PlayerTypes;
+
+    public void Write(StreamWriter writer)
+    {
+        writer.WriteLine(SceneName);
+        writer.WriteLine(PlayerTypes.Length);
+        foreach (var type in PlayerTypes)
+        {
+            writer.WriteLine(type);
+        }
+    }
+
+    public static GameSettings Read(TextReader reader)
+    {
+        var result = new GameSettings();
+        result.SceneName = reader.ReadLine() ?? throw new NullReferenceException("SceneName is not provided");
+
+        var playerCount = int.Parse(reader.ReadLine()
+                                    ?? throw new NullReferenceException("Number of PlayerType's is not provided"));
+        result.PlayerTypes = new PlayerType[playerCount];
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            var typeStr = reader.ReadLine()
+                          ?? throw new NullReferenceException($"Player type {i} is not provided");
+            if (!Enum.TryParse(typeStr, out result.PlayerTypes[i]))
+            {
+                throw new ArgumentException($"Invalid player type: {typeStr}");
+            }
+        }
+
+        return result;
+    }
+
+    protected bool Equals(GameSettings other)
+    {
+        return SceneName == other.SceneName && Equals(PlayerTypes, other.PlayerTypes);
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (ReferenceEquals(null, obj)) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != this.GetType()) return false;
+        return Equals((GameSettings) obj);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            return ((SceneName != null ? SceneName.GetHashCode() : 0) * 397) ^ (PlayerTypes != null ? PlayerTypes.GetHashCode() : 0);
+        }
+    }
 }
 
 public class GameLogic
@@ -51,7 +106,7 @@ public class GameLogic
 
     // public readonly ConcurrentQueue<UnityAction<Scene>> SceneLoadSubscribers;
     public readonly ConcurrentQueue<Event> Events;
-    
+
     public GameLogic(GameSettings gameSettings)
     {
         Events = new ConcurrentQueue<Event>();
@@ -63,7 +118,7 @@ public class GameLogic
 
         // Start scene loading
         var sceneAsync = SceneManager.LoadSceneAsync(
-            gameSettings.SceneName, 
+            gameSettings.SceneName,
             new LoadSceneParameters(LoadSceneMode.Additive, LocalPhysicsMode.Physics3D));
         var scene = SceneManager.GetSceneAt(SceneManager.sceneCount - 1);
         sceneAsync.completed += _ => OnSimulationSceneLoaded(scene);
@@ -82,14 +137,14 @@ public class GameLogic
     //
     //     callback(scene);
     // }
-    
+
     private void OnSimulationSceneLoaded(Scene scene)
     {
         Debug.Log("GameLogic got scene");
 
         SimulationScene = scene;
         MakeSceneInvisible(scene);
-        
+
         var rootGameObjects = scene.GetRootGameObjects();
         var rootGameObject = rootGameObjects[0];
 
@@ -163,7 +218,7 @@ public class GameLogic
         //if (playerId != CurrentPlayer) throw new ArgumentException($"Wrong player ID: {playerId}. Expected: {CurrentPlayer}");
         if (forceFrac < 0 || forceFrac > 1) throw new ArgumentException($"Invalid force fraction value: {forceFrac}");
 
-        var ballBody = PlayerBalls[playerId].Body;  
+        var ballBody = PlayerBalls[playerId].Body;
         var forceVec = Vector3.forward * (MaxStrokeForce * forceFrac);
         ballBody.AddForce(Quaternion.Euler(0, angle, 0) * forceVec, ForceMode.Impulse);
         var trajectory = new Trajectory(FrameDeltaTime);
@@ -184,9 +239,9 @@ public class GameLogic
                 throw new ApplicationException("Simulation is too long.");
             }
         }
-        
+
         Events.Enqueue(new Event.PlayTrajectory(trajectory, playerId));
-        
+
         CurrentPlayer = (CurrentPlayer + 1) % NumberOfPlayers;
     }
 
@@ -205,11 +260,11 @@ public class GameLogic
         if (PlayerBalls[0].getLayerId() != 0) {
             Events.Enqueue(new Event.Finish("Player 0 win!"));
         }
-        
+
         if (PlayerBalls[1].getLayerId() != 0) {
             Events.Enqueue(new Event.Finish("Player 1 win!"));
         }
-        
+
         Events.Enqueue(new Event.TurnOfPlayer(CurrentPlayer));
         if (PlayerTypes[CurrentPlayer] != PlayerType.Human)
         {

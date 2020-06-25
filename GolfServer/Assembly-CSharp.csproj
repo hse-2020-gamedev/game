@@ -53,24 +53,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\ClientAssets\Scenes\MenuBehaviourScript.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\ChangeBallLayer.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\GameLoopManager.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\IServerHandle.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\LocalServer.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\Event.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\GameLogic.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\IGameAI.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\PlayerBall.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Shared\Trajectory.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Ui\StrokeAngleIndicator.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Ui\StrokeForceUI.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Ui\StrokeManager.cs" />
-     <Compile Include="Assets\ClientAssets\Scripts\Utils\VectorExtensions.cs" />
      <Compile Include="Assets\Scripts\Server.cs" />
-     <None Include="Assets\ClientAssets\Materials\Ball.shader" />
-     <None Include="Assets\ClientAssets\Materials\Hole.shader" />
-     <None Include="Assets\ClientAssets\Materials\DepthMask.shader" />
+     <Compile Include="Assets\Scripts\Shared\Event.cs" />
+     <Compile Include="Assets\Scripts\Shared\EvilAI.cs" />
+     <Compile Include="Assets\Scripts\Shared\GameLogic.cs" />
+     <Compile Include="Assets\Scripts\Shared\IGameAI.cs" />
+     <Compile Include="Assets\Scripts\Shared\IServerHandle.cs" />
+     <Compile Include="Assets\Scripts\Shared\PlayerBall.cs" />
+     <Compile Include="Assets\Scripts\Shared\RemoteServer.cs" />
+     <Compile Include="Assets\Scripts\Shared\Trajectory.cs" />
+     <Compile Include="Assets\Scripts\Shared\Utils\VectorExtensions.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>/home/atonkikh/work/game/GolfServer/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
  </Reference>

@@ -2,7 +2,7 @@ public abstract class Event
 {
     private Event() {}
 
-    public class PlayTrajectory : Event
+    public sealed class PlayTrajectory : Event
     {
         public PlayTrajectory(Trajectory trajectory, int ballToFollow)
         {
@@ -14,7 +14,7 @@ public abstract class Event
         public Trajectory Trajectory;
     }
 
-    public class TurnOfPlayer : Event
+    public sealed class TurnOfPlayer : Event
     {
         public TurnOfPlayer(int playerId)
         {
@@ -24,12 +24,11 @@ public abstract class Event
         public int playerId;
     }
 
-    public class Finish : Event
+    public sealed class Finish : Event
     {
         public string Message;
         public Finish(string msg) {
             this.Message = msg;
         }
     }
-    
 }

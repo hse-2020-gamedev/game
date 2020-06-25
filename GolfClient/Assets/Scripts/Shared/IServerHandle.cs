@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEngine;
 
-public interface IServer
+public interface IServerHandle
 {
     void HitBall(int playerId, float direction, float force);
 

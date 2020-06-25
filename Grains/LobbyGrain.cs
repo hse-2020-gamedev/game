@@ -14,78 +14,85 @@ namespace Grains
         {
             // public Dictionary<Guid, bool> PlayerApprove;
             public Guid[] PlayerCookies;
-            public string LevelName;
+            public GameSettings Settings;
 
-            public FormedGame(Guid playerCookie1, Guid playerCookie2, string levelName)
+            public FormedGame(Guid playerCookie1, Guid playerCookie2, GameSettings settings)
             {
                 // PlayerApprove = new Dictionary<Guid, bool>();
                 // PlayerApprove[playerCookie1] = false;
                 // PlayerApprove[playerCookie2] = false;
                 PlayerCookies = new[] {playerCookie1, playerCookie2};
-                LevelName = levelName;
+                Settings = settings;
             }
         }
-        
+
+        private const int GameServerManagerCount = 2;
+
         private readonly ILogger _logger;
-        private readonly Dictionary<string, Guid> _waitingPlayersOnLevel = new Dictionary<string, Guid>();
+        private readonly Dictionary<GameSettings, Guid> _waitingPlayersOnLevel = new Dictionary<GameSettings, Guid>();
         private readonly Dictionary<Guid, FormedGame> _formedGames = new Dictionary<Guid, FormedGame>();
-        private readonly Dictionary<Guid, string> _levelNameByCookie = new Dictionary<Guid, string>();
-        
+        private readonly Dictionary<Guid, GameSettings> _settingsByCookie = new Dictionary<Guid, GameSettings>();
+        private readonly Random _random = new Random();
+
         public LobbyGrain(ILogger<HelloGrain> logger)
         {
             _logger = logger;
         }
 
-        public Task<Guid> SearchGame(string levelName)
+        public async Task<Guid> SearchGame(GameSettings settings)
         {
             // TODO: Guids are not really secure, replace with real random.
             // TODO: See https://security.stackexchange.com/questions/890/are-guids-safe-for-one-time-tokens
             var cookie = Guid.NewGuid();
             // TODO: Check that "levelName" exists.
-            _levelNameByCookie[cookie] = levelName;
+            _settingsByCookie[cookie] = settings;
 
-            if (!_waitingPlayersOnLevel.ContainsKey(levelName))
+            if (!_waitingPlayersOnLevel.ContainsKey(settings))
             {
-                _waitingPlayersOnLevel.Add(levelName, cookie);
+                _waitingPlayersOnLevel.Add(settings, cookie);
             }
             else
             {
                 // TODO: Use timers to kick out unresponsive players.
-                var otherCookie = _waitingPlayersOnLevel[levelName];
-                var players = new FormedGame(cookie, otherCookie, levelName);
+                var otherCookie = _waitingPlayersOnLevel[settings];
+                var players = new FormedGame(cookie, otherCookie, settings);
                 _formedGames[cookie] = players;
                 _formedGames[otherCookie] = players;
-                _waitingPlayersOnLevel.Remove(levelName);
+                _waitingPlayersOnLevel.Remove(settings);
             }
 
-            return Task.FromResult(cookie);
+            // return Task.FromResult(cookie);
+            return cookie;
         }
 
-        public Task<string?> CheckStatus(Guid cookie)
+        public Task<EndPoint?> CheckStatus(Guid cookie)
         {
-            if (!_levelNameByCookie.ContainsKey(cookie))
+            if (!_settingsByCookie.ContainsKey(cookie))
             {
                 throw new PlayerNotFoundException($"Unknown player cookie: {cookie}");
             }
 
             if (!_formedGames.ContainsKey(cookie))
             {
-                return Task.FromResult<string?>(null);
+                return Task.FromResult<EndPoint?>(null);
             }
 
-            return Task.FromResult($"Matched on level {_formedGames[cookie].LevelName}")!;
+            var formedGame = _formedGames[cookie];
+
+            var gameServerManager = GrainFactory.GetGrain<IGameServerManager>(_random.Next(GameServerManagerCount));
+            return gameServerManager.StartGame(formedGame.Settings, formedGame.PlayerCookies)!;
         }
 
         public Task StopSearching(Guid cookie)
         {
-            if (!_levelNameByCookie.ContainsKey(cookie))
+            if (!_settingsByCookie.ContainsKey(cookie))
             {
                 throw new PlayerNotFoundException($"Unknown player cookie: {cookie}");
             }
 
-            if (_waitingPlayersOnLevel[_levelNameByCookie[cookie]] == cookie)
+            if (_waitingPlayersOnLevel[_settingsByCookie[cookie]] == cookie)
             {
-                _waitingPlayersOnLevel.Remove(_levelNameByCookie[cookie]);
+                _waitingPlayersOnLevel.Remove(_settingsByCookie[cookie]);
             }
             _formedGames.Remove(cookie);
 
